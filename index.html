@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#c92a3b" />
+    <meta name="description" content="Marriage Hisab Kitab — a local Marriage card game point calculator." />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Marriage Hisab Kitab" />
+    <title>Marriage Hisab Kitab</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles/styles.css" />
+  </head>
+  <body>
+    <div id="app-shell">
+      <header class="topbar">
+        <button class="brand" data-action="navigate" data-view="home" aria-label="Go home">
+          <span class="brand-mark">♠</span><span>Marriage Hisab Kitab</span>
+        </button>
+        <nav class="desktop-nav" aria-label="Primary navigation">
+          <button data-action="navigate" data-view="home">Home</button>
+          <button data-action="navigate" data-view="games">Games</button>
+          <button data-action="navigate" data-view="config"><span class="config-nav-icon" aria-hidden="true">⚙</span> Config</button>
+        </nav>
+        <div class="topbar-actions"><button id="install-button" class="button secondary install-button" type="button" title="Install App locally on your device for offline use." aria-label="Install App locally on your device for offline use." hidden>Install</button><button class="icon-button" data-action="navigate" data-view="rules" title="Rules">?</button></div>
+      </header>
+      <main id="main-content"></main>
+      <nav class="mobile-nav" aria-label="Mobile navigation">
+        <button data-action="navigate" data-view="home"><span>⌂</span>Home</button>
+        <button data-action="navigate" data-view="games"><span>◷</span>Games</button>
+        <button data-action="navigate" data-view="config"><span>⚙</span>Config</button>
+      </nav>
+    </div>
+    <div id="modal-root"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="app.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+    </script>
+  </body>
+</html>
