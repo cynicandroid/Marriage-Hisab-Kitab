@@ -41,7 +41,7 @@ sw.js                  Offline service worker
 From the web app folder:
 
 ```bash
-cd "/Users/saroj.poudyal/development/apple/Marriage-Hisab-Kitab"
+cd "/Users/<user>Marriage-Hisab-Kitab"
 just run
 ```
 
