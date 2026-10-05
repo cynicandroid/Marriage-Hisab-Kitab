@@ -17,6 +17,7 @@ const APP_SHELL = [
   "./assets/icons/icon-192.png",
   "./assets/icons/icon-512.png",
   "./assets/icons/icon-maskable-512.png",
+  "./assets/GulmiMap.png",
 ];
 
 self.addEventListener("install", (event) => {

@@ -29,13 +29,16 @@ function gameCards() {
 export function homeView() {
   return `
     <section class="hero">
+      <img class="hero-map" src="assets/GulmiMap.png" alt="" aria-hidden="true">
+      <span class="hero-flag" aria-hidden="true">🇳🇵</span>
       <div class="hero-content">
-        <p class="eyebrow">Sathi ho ajja ta jitne ho</p>
-        <h1>MARRIAGE<span>HISAB KITAB</span></h1>
-        <p>Keep every maal, round, and winning score together. Built for the Nepali Marriage card game.</p>
-        <button class="button" data-action="new-game">＋ New Game</button>
+        <div class="hero-spade">♠</div>
+        <h1>MARRIAGE</h1>
+        <div class="hero-subtitle">Point Calculator</div>
+        <div class="hero-tagline">SATHI HO AJJA TA JITNE HO</div>
       </div>
     </section>
+    <button class="button primary home-new-game" data-action="new-game">＋ New Game</button>
     <section class="section">
       <div class="section-title">
         <h2>Games</h2>

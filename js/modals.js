@@ -49,7 +49,7 @@ export function newGameForm() {
               </div>
             </div>
           </div>
-          <div class="modal-footer"><button type="button" class="button ghost" data-action="close-modal">Cancel</button><button class="button primary">Start game</button></div>
+          <div class="modal-footer"><button type="button" class="button ghost" data-action="close-modal">Cancel</button><button class="button primary">Start Game</button></div>
         </form>
       </div>
     </div>

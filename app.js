@@ -81,6 +81,14 @@ function handleAction(event) {
   if (action === "open-game")
     navigate("scoreboard", event.currentTarget.dataset.id);
   if (action === "add-round") navigate("round", state.gameId);
+  if (action === "cancel-round")
+    showConfirmation(
+      "Are you sure you want to cancel?",
+      "Any changes made to this round will be lost.",
+      () => navigate("scoreboard", state.gameId),
+      "Yes",
+      "No",
+    );
   if (action === "open-round")
     navigate("detail", state.gameId, event.currentTarget.dataset.id);
   if (action === "delete-game") {
@@ -235,6 +243,10 @@ function selectWinnerOption(event) {
   trigger.innerHTML = `<span class="winner-trigger-person"><span class="winner-trigger-avatar">${playerName.charAt(0).toUpperCase()}</span><span><small>Winning player</small><strong>${playerName}</strong></span></span><span class="winner-trigger-chevron">⌄</span>`;
   menu.classList.remove("open");
   trigger.setAttribute("aria-expanded", "false");
+  document
+    .querySelector('#round-form button[type="submit"]')
+    ?.removeAttribute("disabled");
+  document.querySelector(".calculate-hint")?.setAttribute("hidden", "");
   document.querySelectorAll("[data-winner-option]").forEach((item) => {
     const selected = item.dataset.winnerOption === playerId;
     item.classList.toggle("selected", selected);
@@ -286,6 +298,7 @@ function statusClick(event) {
   card.querySelectorAll("[data-step], [data-dubli]").forEach((control) => {
     control.disabled = !seen;
   });
+  card.querySelector(".stepper")?.setAttribute("data-tooltip", seen ? "" : "Only Seen players can have Maal points.");
   if (!seen) card.querySelector("[data-dubli]").checked = false;
 }
 function stepClick(event) {
@@ -406,7 +419,12 @@ function setupInstallPrompt() {
     installButton.hidden = false;
   });
   installButton.addEventListener("click", async () => {
-    if (!installPrompt) return;
+    if (!installPrompt) {
+      showToast(
+        "Use your browser menu to install or add Marriage Hisab Kitab to your home screen.",
+      );
+      return;
+    }
     installPrompt.prompt();
     await installPrompt.userChoice;
     installPrompt = null;

@@ -19,6 +19,7 @@ check:
     @test -f assets/icons/icon-192.png
     @test -f assets/icons/icon-512.png
     @test -f assets/icons/icon-maskable-512.png
+    @test -f assets/GulmiMap.png
     @test -f js/core.js
     @test -f js/modals.js
     @test -f js/views/home.js

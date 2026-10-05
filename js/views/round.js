@@ -15,7 +15,7 @@ function playerInput(player, entry, isWinner) {
       <label class="toggle"><input type="checkbox" data-dubli ${entry.dubli ? "checked" : ""} ${entry.status !== "seen" ? "disabled" : ""}/> Dubli</label>
       <div class="maal-row">
         <span class="maal-label">MAAL POINTS</span>
-        <span class="stepper">
+        <span class="stepper" data-tooltip="${entry.status !== "seen" ? "Only Seen players can have Maal points." : ""}">
           <button type="button" data-step="-1" ${entry.status !== "seen" ? "disabled" : ""}>−</button>
           <span data-maal>${entry.status === "seen" ? entry.maalPoints : 0}</span>
           <button type="button" data-step="1" ${entry.status !== "seen" ? "disabled" : ""}>＋</button>
@@ -41,6 +41,7 @@ export function roundView() {
       }));
   const winner = editing?.winnerId || "";
   const winnerPlayer = game.players.find((player) => player.id === winner);
+  const canCalculate = Boolean(winner);
   const options = game.players
     .map(
       (player) => `
@@ -88,8 +89,11 @@ export function roundView() {
       <div class="round-player-grid">${playerCards}</div>
       <div class="notice">Unseen pays maal plus its charge. Seen with maal uses the total-maal rule plus its charge. The winner receives the total.</div>
       <div class="sticky-actions">
-        <button type="button" class="button ghost" data-action="navigate" data-view="scoreboard">Cancel</button>
-        <button class="button primary">Calculate round</button>
+        <button type="button" class="button ghost" data-action="cancel-round">Cancel</button>
+        <div class="calculate-action">
+          <button type="submit" class="button primary" ${canCalculate ? "" : "disabled"}>Calculate round</button>
+          <span class="calculate-hint" ${canCalculate ? "hidden" : ""}>Pick Winner</span>
+        </div>
       </div>
     </form>
   `;

@@ -22,16 +22,55 @@ function scoreTable(game) {
       return `<td class="${amount >= 0 ? "positive" : "negative"}">${money(amount)}</td>`;
     })
     .join("");
+  const mobileRounds = game.rounds.length
+    ? [...game.rounds]
+        .reverse()
+        .map(
+          (round) => `
+      <div class="mobile-round-card">
+        <div class="mobile-round-header"><strong>Round ${round.number}</strong><span>${escape(game.players.find((player) => player.id === round.winnerId)?.name || "Winner")} won</span></div>
+        ${game.players
+          .map(
+            (player) => `
+          <div class="mobile-score-row">
+            <span>${escape(player.name)}${round.winnerId === player.id ? ' <span class="round-winner">★</span>' : ""}</span>
+            ${scoreBadge(round.scores[player.id] || 0)}
+          </div>
+        `,
+          )
+          .join("")}
+      </div>
+    `,
+        )
+        .join("")
+    : `<div class="empty">Add a round to start the scoreboard.</div>`;
+  const mobileTotals = game.players
+    .map(
+      (player) => `
+      <div class="mobile-score-row"><strong>${escape(player.name)}</strong>${scoreBadge(total(game, player.id))}</div>
+      <div class="mobile-amount-row"><span>Total amount</span><strong class="${total(game, player.id) >= 0 ? "positive" : "negative"}">${money(total(game, player.id) * game.settings.pointRate)}</strong></div>
+    `,
+    )
+    .join("");
 
   return `
-    <table class="score-table">
-      <thead><tr><th>Game</th>${headers}</tr></thead>
-      <tbody>${rows}</tbody>
-      <tfoot>
-        <tr><td>TOTAL</td>${totals}</tr>
-        <tr><td>TOTAL AMOUNT</td>${amounts}</tr>
-      </tfoot>
-    </table>
+    <div class="desktop-score-table">
+      <table class="score-table">
+        <thead><tr><th>Game</th>${headers}</tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot>
+          <tr><td>TOTAL</td>${totals}</tr>
+          <tr><td>TOTAL AMOUNT</td>${amounts}</tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="mobile-scoreboard">
+      <div class="mobile-total-card">
+        <h3>Live totals</h3>
+        ${mobileTotals}
+      </div>
+      ${mobileRounds}
+    </div>
   `;
 }
 
