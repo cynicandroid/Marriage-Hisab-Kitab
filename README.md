@@ -1,15 +1,16 @@
 # Marriage Hisab Kitab — Web
 
-Marriage Hisab Kitab is a vanilla JavaScript browser version of the iOS Marriage point calculator for the Nepali Marriage card game.
+Marriage Hisab Kitab is a vanilla JavaScript browser version of the Marriage point calculator for the Nepali Marriage card game.
 
 It has no third-party runtime dependencies, build bundler, server API, or account system. Game data is stored locally in the browser with `localStorage`.
+
+Developer: Saroj Poudyal
 
 ## Features
 
 - Home, Games history, Config, Rules, New Game, Scoreboard, Round Details, and round editor pages
 - 2–8 players with configurable default names and point rate
 - Seen/Unseen status, Dubli, Maal stepper, and winner selection
-- Matching iOS round-scoring logic
 - Live round scores, cumulative totals, and dollar amounts
 - Round editing and deletion
 - Game deletion and scoreboard sharing/copying
@@ -45,7 +46,7 @@ cd "/Users/<user>Marriage-Hisab-Kitab"
 just run
 ```
 
-`just run` opens [http://localhost:8000](http://localhost:8000) automatically in the default macOS browser. Stop the server with `Ctrl+C`.
+`just run` opens [http://localhost:8000](http://localhost:8000) automatically in the default OS browser. Stop the server with `Ctrl+C`.
 
 You can also use the alias:
 
@@ -85,3 +86,9 @@ List all available commands:
 ```bash
 just
 ```
+
+## License and disclaimer
+
+This is a free app shared under the GNU General Public License. You are free to fork, modify, and edit it for your own use.
+
+This app is for fun and entertainment only. Do not use real money. Any virtual money shown is purely for bragging rights and has no real-world value.
