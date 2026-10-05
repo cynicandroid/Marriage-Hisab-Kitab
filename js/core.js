@@ -6,8 +6,15 @@ const defaultPrefs = {
   playerCount: 5,
   names: ["Saroj", "Raj", "Padam", "Prakash", "Pragyan"],
   pointRate: 0.25,
+  currency: "USD",
 };
-export const rates = [0.25, 0.5, 1, 2, 10, 100];
+export const rates = [0.25, 0.5, 1, 2, 5, 10, 50, 100];
+export const currencies = [
+  { value: "USD", symbol: "$", label: "Dollar" },
+  { value: "NPR", symbol: "Rs.", label: "Nepalese Rupee" },
+  { value: "GBP", symbol: "£", label: "Pound" },
+  { value: "EUR", symbol: "€", label: "Euro" },
+];
 
 export function load(key, fallback) {
   try {
@@ -35,10 +42,14 @@ export function id() {
     : `${Date.now()}-${Math.random()}`;
 }
 export function money(n) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(n);
+  const currency =
+    currencies.find((option) => option.value === state.prefs.currency) ||
+    currencies[0];
+  const amount = new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Math.abs(Number(n) || 0));
+  return `${Number(n) < 0 ? "-" : ""}${currency.symbol}${amount}`;
 }
 export function dateLabel(iso) {
   return new Date(iso).toLocaleDateString(undefined, {

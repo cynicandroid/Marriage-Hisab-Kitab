@@ -1,4 +1,21 @@
-import { escape, money, rates, state } from "../core.js";
+import { currencies, escape, money, rates, state } from "../core.js";
+
+function currencyPicker() {
+  const selectedCurrency = state.prefs.currency || "USD";
+  return `
+    <div class="currency-picker" role="radiogroup" aria-label="Currency">
+      ${currencies
+        .map(
+          (currency) => `
+          <button type="button" class="currency-option ${selectedCurrency === currency.value ? "selected" : ""}" data-currency-option="${currency.value}" title="${currency.label}" aria-label="${currency.label}" aria-pressed="${selectedCurrency === currency.value}">
+          <span>${currency.symbol}</span>
+        </button>
+      `,
+        )
+        .join("")}
+    </div>
+  `;
+}
 
 function settingPicker(pref, current, options) {
   const items = options
@@ -65,6 +82,7 @@ export function configView() {
           label: `${index + 2} players`,
         })),
       )}</div>
+      <div class="setting-row"><div><label>Currency</label><small class="setting-help">Choose the currency shown for amounts</small></div>${currencyPicker()}</div>
       <div class="setting-row"><label>Default point amount</label>${settingPicker(
         "pointRate",
         money(state.prefs.pointRate),

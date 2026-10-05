@@ -155,6 +155,9 @@ function bind() {
       element.addEventListener("click", selectSettingOption),
     );
   document
+    .querySelectorAll("[data-currency-option]")
+    .forEach((element) => element.addEventListener("click", selectCurrency));
+  document
     .querySelector("#player-count")
     ?.addEventListener("change", resizePlayerFields);
   document
@@ -221,6 +224,12 @@ function selectSettingOption(event) {
         : "";
     });
   document.querySelector("#save-note")?.classList.add("visible");
+}
+
+function selectCurrency(event) {
+  state.prefs.currency = event.currentTarget.dataset.currencyOption;
+  save();
+  render();
 }
 
 function toggleWinnerMenu() {
