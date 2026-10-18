@@ -1,4 +1,6 @@
-const CACHE_NAME = "marriage-hisab-kitab-v2";
+const CACHE_NAME = "marriage-hisab-kitab-v3";
+const FONT_STYLESHEET =
+  "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -22,7 +24,18 @@ const APP_SHELL = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)),
+    caches.open(CACHE_NAME).then(async (cache) => {
+      await cache.addAll(APP_SHELL);
+
+      // Preload the stylesheet on first install. The font files referenced by
+      // it are fetched and cached by the runtime cache in the fetch handler.
+      // A font-service failure must not prevent the app shell from installing.
+      try {
+        await cache.add(FONT_STYLESHEET);
+      } catch {
+        // The app has local font fallbacks if Google Fonts is unavailable.
+      }
+    }),
   );
   self.skipWaiting();
 });
@@ -44,6 +57,16 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  const requestUrl = new URL(event.request.url);
+  const isSameOrigin = requestUrl.origin === self.location.origin;
+  const isGoogleFont =
+    requestUrl.hostname === "fonts.googleapis.com" ||
+    requestUrl.hostname === "fonts.gstatic.com";
+
+  // Only cache the app shell/assets and Google Fonts. Other external requests
+  // should behave like normal network requests and must not fill the app cache.
+  if (!isSameOrigin && !isGoogleFont) return;
+
   event.respondWith(
     caches
       .match(event.request)

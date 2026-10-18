@@ -2,6 +2,7 @@ import {
   getGame,
   id,
   navigate,
+  restoreNavigation,
   save,
   setRenderer,
   state,
@@ -178,6 +179,24 @@ function bind() {
   document
     .querySelectorAll("[data-step]")
     .forEach((element) => element.addEventListener("click", stepClick));
+  document.querySelectorAll('.stepper [data-step="-1"], .stepper [data-step="1"]')
+    .forEach((element) => {
+      let holdTimer;
+      let repeatTimer;
+      const stopHolding = () => {
+        clearTimeout(holdTimer);
+        clearInterval(repeatTimer);
+      };
+      element.addEventListener("pointerdown", () => {
+        if (element.disabled) return;
+        holdTimer = setTimeout(() => {
+          repeatTimer = setInterval(() => stepClick({ currentTarget: element }), 90);
+        }, 450);
+      });
+      ["pointerup", "pointercancel", "pointerleave"].forEach((eventName) =>
+        element.addEventListener(eventName, stopHolding),
+      );
+    });
 }
 
 function resizePlayerFields(event) {
@@ -291,6 +310,7 @@ function statusClick(event) {
   const card = event.currentTarget.closest("[data-player-card]");
   const seen = event.currentTarget.dataset.status === "seen";
   card.dataset.status = seen ? "seen" : "unseen";
+  card.querySelector(".maal-row")?.classList.toggle("is-disabled", !seen);
   if (!seen) card.querySelector("[data-maal]").textContent = "0";
   card
     .querySelectorAll("[data-status]")
@@ -430,7 +450,7 @@ function setupInstallPrompt() {
   installButton.addEventListener("click", async () => {
     if (!installPrompt) {
       showToast(
-        "Use your browser menu to install or add Marriage Hisab Kitab to your home screen.",
+        "Use your browser menu or Add to Home Screen to install this app.",
       );
       return;
     }
@@ -446,6 +466,11 @@ function setupInstallPrompt() {
 }
 
 setRenderer(render);
+restoreNavigation();
+window.addEventListener("hashchange", () => {
+  restoreNavigation();
+  render();
+});
 applyTheme();
 render();
 setupInstallPrompt();

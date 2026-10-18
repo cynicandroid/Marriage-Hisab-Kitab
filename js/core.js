@@ -16,7 +16,7 @@ export const currencies = [
   { value: "EUR", symbol: "€", label: "Euro" },
 ];
 
-export function load(key, fallback) {
+function load(key, fallback) {
   try {
     return JSON.parse(localStorage.getItem(key)) ?? fallback;
   } catch {
@@ -31,6 +31,48 @@ export const state = {
   games: load(STORAGE.games, []),
   prefs: load(STORAGE.prefs, defaultPrefs),
 };
+
+const views = new Set([
+  "home",
+  "games",
+  "config",
+  "rules",
+  "scoreboard",
+  "round",
+  "detail",
+]);
+
+function routeHash(view, gameId, roundId) {
+  return `#/${[view, gameId, roundId]
+    .filter(Boolean)
+    .map((part) => encodeURIComponent(part))
+    .join("/")}`;
+}
+
+export function restoreNavigation() {
+  let parts;
+  try {
+    parts = window.location.hash
+      .replace(/^#\/?/, "")
+      .split("/")
+      .filter(Boolean)
+      .map((part) => decodeURIComponent(part));
+  } catch {
+    parts = [];
+  }
+  const [view, gameId = null, roundId = null] = parts;
+
+  if (!views.has(view)) {
+    state.view = "home";
+    state.gameId = null;
+    state.roundId = null;
+    return;
+  }
+
+  state.view = view;
+  state.gameId = gameId;
+  state.roundId = roundId;
+}
 
 export function save() {
   localStorage.setItem(STORAGE.games, JSON.stringify(state.games));
@@ -96,6 +138,7 @@ export function navigate(view, gameId = state.gameId, roundId = null) {
   state.view = view;
   state.gameId = gameId;
   state.roundId = roundId;
+  history.replaceState(null, "", routeHash(view, gameId, roundId));
   renderer();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }

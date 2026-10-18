@@ -13,12 +13,16 @@ function playerInput(player, entry, isWinner) {
         <button type="button" class="${entry.status === "unseen" ? "selected unseen" : ""}" data-status="unseen">◌ Unseen</button>
       </div>
       <label class="toggle"><input type="checkbox" data-dubli ${entry.dubli ? "checked" : ""} ${entry.status !== "seen" ? "disabled" : ""}/> Dubli</label>
-      <div class="maal-row">
+      <div class="maal-row ${entry.status !== "seen" ? "is-disabled" : ""}">
         <span class="maal-label">MAAL POINTS</span>
         <span class="stepper" data-tooltip="${entry.status !== "seen" ? "Only Seen players can have Maal points." : ""}">
           <button type="button" data-step="-1" ${entry.status !== "seen" ? "disabled" : ""}>−</button>
           <span data-maal>${entry.status === "seen" ? entry.maalPoints : 0}</span>
           <button type="button" data-step="1" ${entry.status !== "seen" ? "disabled" : ""}>＋</button>
+        </span>
+        <span class="quick-steps" aria-label="Quickly add Maal points">
+          <button type="button" class="quick-step" data-step="5" ${entry.status !== "seen" ? "disabled" : ""}>+5</button>
+          <button type="button" class="quick-step" data-step="10" ${entry.status !== "seen" ? "disabled" : ""}>+10</button>
         </span>
       </div>
     </div>
