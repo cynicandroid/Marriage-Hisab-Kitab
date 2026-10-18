@@ -1,4 +1,4 @@
-const CACHE_NAME = "marriage-hisab-kitab-v3";
+const CACHE_NAME = "marriage-hisab-kitab-v4";
 const FONT_STYLESHEET =
   "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap";
 const APP_SHELL = [
@@ -37,7 +37,10 @@ self.addEventListener("install", (event) => {
       }
     }),
   );
-  self.skipWaiting();
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {

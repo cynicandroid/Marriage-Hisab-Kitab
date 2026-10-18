@@ -465,6 +465,36 @@ function setupInstallPrompt() {
   });
 }
 
+function setupServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  window.addEventListener("load", async () => {
+    const registration = await navigator.serviceWorker.register("./sw.js");
+    const updateToast = document.querySelector("#update-toast");
+    const updateButton = document.querySelector("#update-button");
+
+    const showUpdate = (worker) => {
+      if (!navigator.serviceWorker.controller || !worker) return;
+      updateToast.hidden = false;
+      updateButton.onclick = () => {
+        updateButton.disabled = true;
+        worker.postMessage({ type: "SKIP_WAITING" });
+      };
+    };
+
+    registration.addEventListener("updatefound", () => {
+      const worker = registration.installing;
+      worker?.addEventListener("statechange", () => {
+        if (worker.state === "installed") showUpdate(worker);
+      });
+    });
+    showUpdate(registration.waiting);
+
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      window.location.reload();
+    }, { once: true });
+  });
+}
+
 setRenderer(render);
 restoreNavigation();
 window.addEventListener("hashchange", () => {
@@ -474,3 +504,4 @@ window.addEventListener("hashchange", () => {
 applyTheme();
 render();
 setupInstallPrompt();
+setupServiceWorker();
