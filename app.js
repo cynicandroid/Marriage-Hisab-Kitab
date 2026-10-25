@@ -1,5 +1,6 @@
 import {
   escape,
+  calculateRoundScores,
   getGame,
   id,
   navigate,
@@ -16,7 +17,7 @@ import { rulesView } from "./js/views/rules.js";
 import { scoreboardView } from "./js/views/scoreboard.js";
 import { roundView } from "./js/views/round.js";
 import { detailView } from "./js/views/detail.js";
-import { confirmModal, newGameForm } from "./js/modals.js";
+import { confirmModal, editGameForm, newGameForm } from "./js/modals.js";
 
 let stopActiveStepperHold = null;
 [
@@ -66,6 +67,12 @@ function showNewGame() {
   document.querySelector("#modal-root").innerHTML = newGameForm();
   bind();
 }
+function showEditGame() {
+  const game = getGame();
+  if (!game) return;
+  document.querySelector("#modal-root").innerHTML = editGameForm(game);
+  bind();
+}
 function showConfirmation(title, copy, action, confirmLabel, cancelLabel) {
   document.querySelector("#modal-root").innerHTML = confirmModal(
     title,
@@ -84,6 +91,7 @@ function handleAction(event) {
   const action = event.currentTarget.dataset.action;
   if (action === "navigate") navigate(event.currentTarget.dataset.view);
   if (action === "new-game") showNewGame();
+  if (action === "edit-game") showEditGame();
   if (action === "close-modal") closeModal();
   if (action === "toggle-theme") {
     state.prefs.theme = state.prefs.theme === "dark" ? "light" : "dark";
@@ -171,11 +179,17 @@ function bind() {
     .querySelectorAll("[data-currency-option]")
     .forEach((element) => element.addEventListener("click", selectCurrency));
   document
-    .querySelector("#player-count")
-    ?.addEventListener("change", resizePlayerFields);
+    .querySelectorAll("[data-new-game-trigger]")
+    .forEach((element) => element.addEventListener("click", toggleNewGameMenu));
+  document
+    .querySelectorAll("[data-new-game-option]")
+    .forEach((element) => element.addEventListener("click", selectNewGameOption));
   document
     .querySelector("#new-game-form")
     ?.addEventListener("submit", createGame);
+  document
+    .querySelector("#edit-game-form")
+    ?.addEventListener("submit", updateGame);
   document.querySelector("#round-form")?.addEventListener("submit", saveRound);
   document
     .querySelector("[data-winner-trigger]")
@@ -216,13 +230,33 @@ function bind() {
     });
 }
 
-function resizePlayerFields(event) {
-  const form = document.querySelector("#new-game-form");
+function toggleNewGameMenu(event) {
+  const name = event.currentTarget.dataset.newGameTrigger;
+  const menu = document.querySelector(`[data-new-game-menu="${name}"]`);
+  const open = menu.classList.toggle("open");
+  event.currentTarget.setAttribute("aria-expanded", String(open));
+}
+function selectNewGameOption(event) {
+  const option = event.currentTarget;
+  const name = option.dataset.newGameOption;
+  const form = event.currentTarget.closest("form");
+  form.elements[name].value = option.dataset.value;
+  document.querySelector(`[data-new-game-trigger="${name}"] .setting-picker-value`).textContent = option.dataset.label;
+  document.querySelector(`[data-new-game-menu="${name}"]`).classList.remove("open");
+  document.querySelector(`[data-new-game-trigger="${name}"]`).setAttribute("aria-expanded", "false");
+  document.querySelectorAll(`[data-new-game-option="${name}"]`).forEach((item) => {
+    const selected = item === option;
+    item.classList.toggle("selected", selected);
+    item.setAttribute("aria-selected", String(selected));
+    item.querySelector(".winner-option-check").textContent = selected ? "✓" : "";
+  });
+  if (name === "count") resizePlayerFields(form, Number(option.dataset.value));
+}
+function resizePlayerFields(form, count) {
   const existing = [...form.querySelectorAll('[name^="player-"]')].map(
     (input) => input.value,
   );
-  const count = Number(event.target.value);
-  document.querySelector("#new-player-fields").innerHTML = Array.from(
+  document.querySelector(`#${form.id === "edit-game-form" ? "edit" : "new"}-player-fields`).innerHTML = Array.from(
     { length: count },
     (_, index) =>
       `<div class="field new-game-row"><label>Player ${index + 1}</label><input name="player-${index}" value="${escape(existing[index] || `Player ${index + 1}`)}" required /></div>`,
@@ -285,7 +319,7 @@ function selectWinnerOption(event) {
   const menu = document.querySelector("[data-winner-menu]");
   document.querySelector("#winner").value = playerId;
   trigger.classList.add("has-value");
-  trigger.innerHTML = `<span class="winner-trigger-person"><span class="winner-trigger-avatar">${playerName.charAt(0).toUpperCase()}</span><span><small>Winning player</small><strong>${playerName}</strong></span></span><span class="winner-trigger-chevron">⌄</span>`;
+  trigger.innerHTML = `<span class="winner-trigger-person"><span class="winner-trigger-avatar">${playerName.charAt(0).toUpperCase()}</span><span><strong>${playerName}</strong></span></span><span class="winner-trigger-chevron">⌄</span>`;
   menu.classList.remove("open");
   trigger.setAttribute("aria-expanded", "false");
   document
@@ -346,7 +380,7 @@ function clearWinnerSelection() {
   document.querySelector("#winner").value = "";
   const trigger = document.querySelector("[data-winner-trigger]");
   trigger.classList.remove("has-value");
-  trigger.innerHTML = '<span class="winner-trigger-person"><span class="winner-trigger-avatar">♛</span><span><small>Winning player</small><strong>Select a winner</strong></span></span><span class="winner-trigger-chevron">⌄</span>';
+  trigger.innerHTML = '<span class="winner-trigger-person"><span class="winner-trigger-avatar">♛</span><span><strong>Select a winner</strong></span></span><span class="winner-trigger-chevron">⌄</span>';
   document.querySelectorAll("[data-winner-option]").forEach((option) => {
     option.classList.remove("selected");
     option.setAttribute("aria-selected", "false");
@@ -400,6 +434,33 @@ function createGame(event) {
   showToast("Game started");
 }
 
+function updateGame(event) {
+  event.preventDefault();
+  const game = getGame();
+  if (!game) return;
+  const form = new FormData(event.target);
+  const count = Number(form.get("count"));
+  const previousPlayers = game.players;
+  if (count < previousPlayers.length) return;
+  const players = Array.from({ length: count }, (_, index) => ({
+    id: previousPlayers[index]?.id || id(),
+    name: String(form.get(`player-${index}`)).trim() || `Player ${index + 1}`,
+  }));
+  const addedPlayers = players.slice(previousPlayers.length);
+
+  game.rounds.forEach((round) => {
+    addedPlayers.forEach((player) => {
+      round.scores[player.id] = 0;
+      round.entries.push({ playerId: player.id, maalPoints: 0, status: "unseen", dubli: false });
+    });
+  });
+  game.players = players;
+  save();
+  closeModal();
+  render();
+  showToast("Game updated");
+}
+
 function saveRound(event) {
   event.preventDefault();
   const game = getGame();
@@ -418,24 +479,7 @@ function saveRound(event) {
     showToast("At least one player must be Seen");
     return;
   }
-  const totalMaal = entries.reduce((sum, entry) => sum + entry.maalPoints, 0);
-  const scores = Object.fromEntries(
-    entries.map((entry) => [entry.playerId, 0]),
-  );
-  let winnerGain = 0;
-  entries
-    .filter((entry) => entry.playerId !== winnerId)
-    .forEach((entry) => {
-      const loss =
-        entry.status === "seen"
-          ? totalMaal -
-            entry.maalPoints * entries.length +
-            (entry.dubli ? 0 : game.settings.seenPoint)
-          : totalMaal + game.settings.unseenPoint;
-      scores[entry.playerId] = -loss;
-      winnerGain += loss;
-    });
-  scores[winnerId] = winnerGain;
+  const scores = calculateRoundScores(entries, game.settings, winnerId);
   const editingId = event.target.dataset.editing;
   const existing = editingId
     ? game.rounds.find((round) => round.id === editingId)

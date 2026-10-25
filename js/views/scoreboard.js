@@ -111,5 +111,6 @@ export function scoreboardView() {
       <div class="section-title"><h2>Rounds</h2></div>
       ${game.rounds.length ? `<div class="card-grid">${rounds}</div>` : `<div class="empty">No rounds yet. Add the first round to begin.</div>`}
     </section>
+    <div class="game-footer-actions"><button class="button success" data-action="edit-game"><span class="action-icon">✎</span> Add new Players to this Game</button></div>
   `;
 }

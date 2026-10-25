@@ -78,10 +78,9 @@ export function roundView() {
     <button class="back-link" data-action="navigate" data-view="scoreboard">← Back to scoreboard</button>
     <div class="round-toolbar">
       <div>
-        <p class="eyebrow">Round ${editing?.number || game.rounds.length + 1}</p>
-        <h1>Enter Maal Points</h1>
+        <h1>Round ${editing?.number || game.rounds.length + 1}</h1>
+        <p class="round-subtitle">Enter Maal Points</p>
       </div>
-      <p>Choose the winner, then set each player’s status and Maal.</p>
     </div>
     <form id="round-form" data-editing="${editing?.id || ""}">
       <div class="winner-field">
@@ -89,7 +88,7 @@ export function roundView() {
         <input type="hidden" id="winner" name="winner" value="${winner}" required>
         <div class="winner-picker">
           <button type="button" class="winner-picker-trigger ${winner ? "has-value" : ""}" data-winner-trigger aria-haspopup="listbox" aria-expanded="false">
-            <span class="winner-trigger-person"><span class="winner-trigger-avatar">${winnerPlayer ? escape(winnerPlayer.name.charAt(0).toUpperCase()) : "♛"}</span><span><small>Winning player</small><strong>${winnerPlayer ? escape(winnerPlayer.name) : "Select a winner"}</strong></span></span>
+            <span class="winner-trigger-person"><span class="winner-trigger-avatar">${winnerPlayer ? escape(winnerPlayer.name.charAt(0).toUpperCase()) : "♛"}</span><span><strong>${winnerPlayer ? escape(winnerPlayer.name) : "Select a winner"}</strong></span></span>
             <span class="winner-trigger-chevron">⌄</span>
           </button>
           <div class="winner-picker-menu" data-winner-menu role="listbox">${options}</div>

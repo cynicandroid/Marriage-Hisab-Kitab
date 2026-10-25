@@ -109,6 +109,29 @@ export function total(game, playerId) {
     0,
   );
 }
+export function calculateRoundScores(entries, settings, winnerId) {
+  const totalMaal = entries.reduce((sum, entry) => sum + entry.maalPoints, 0);
+  const scores = Object.fromEntries(
+    entries.map((entry) => [entry.playerId, 0]),
+  );
+  let winnerGain = 0;
+
+  entries
+    .filter((entry) => entry.playerId !== winnerId)
+    .forEach((entry) => {
+      const loss =
+        entry.status === "seen"
+          ? totalMaal -
+            entry.maalPoints * entries.length +
+            (entry.dubli ? 0 : settings.seenPoint)
+          : totalMaal + settings.unseenPoint;
+      scores[entry.playerId] = -loss;
+      winnerGain += loss;
+    });
+
+  scores[winnerId] = winnerGain;
+  return scores;
+}
 export function scoreClass(score) {
   return score > 0 ? "positive" : score < 0 ? "negative" : "zero";
 }

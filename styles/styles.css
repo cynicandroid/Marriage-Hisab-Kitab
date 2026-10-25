@@ -466,6 +466,9 @@ button {
   gap: 12px;
   margin: 0;
 }
+#new-game-form .modal-body > .new-game-row + .new-game-row {
+  margin-top: 12px;
+}
 #new-game-form .new-game-row label {
   margin: 0;
   white-space: nowrap;
@@ -509,10 +512,16 @@ button {
   border-bottom: 1px solid var(--line);
 }
 .round-toolbar h1 {
-  margin: 2px 0 0;
+  margin: 0;
   font:
-    700 25px "Space Grotesk",
+    700 30px "Space Grotesk",
     sans-serif;
+}
+.round-subtitle {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
 }
 .round-toolbar > p {
   margin: 0;
@@ -799,19 +808,28 @@ button {
 }
 @media (max-width: 700px) {
   .round-toolbar {
-    display: block;
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 8px;
     padding-bottom: 11px;
   }
-  .round-toolbar h1 {
-    font-size: 22px;
+  .round-toolbar > div {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
   }
-  .round-toolbar > p {
-    max-width: none;
-    margin-top: 5px;
-    text-align: left;
+  .round-toolbar h1 {
+    font-size: 26px;
+  }
+  .round-subtitle {
+    margin-top: 0;
+    font-size: 13px;
   }
   .winner-field {
-    grid-template-columns: 1fr;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
     gap: 7px;
     padding: 11px;
   }
@@ -820,11 +838,11 @@ button {
   }
   .player-card,
   .player-card.is-winner {
-    grid-template-columns: calc(var(--player-name-width, 8ch) + 34px) 64px 40px 96px;
+    grid-template-columns: minmax(0, 1fr) 64px 40px 96px;
     justify-content: start;
     gap: 5px;
     padding: 5px 6px;
-    overflow-x: auto;
+    overflow: visible;
   }
   .player-top {
     min-width: 0;
@@ -832,13 +850,17 @@ button {
     grid-column: 1;
     grid-row: 1;
     gap: 4px;
+    align-items: flex-start;
   }
   .player-top .avatar {
     display: none;
   }
   .player-name {
-    flex: 0 0 var(--player-name-width, 8ch);
-    max-width: var(--player-name-width, 8ch);
+    flex: 1 1 auto;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.1;
   }
   .winner-label {
     margin-left: 4px;
@@ -1500,6 +1522,11 @@ button {
   margin-right: 4px;
   font-size: 15px;
   line-height: 1;
+}
+.game-footer-actions {
+  display: flex;
+  justify-content: center;
+  padding: 22px 0 10px;
 }
 .disclaimer-card {
   margin-top: 14px;

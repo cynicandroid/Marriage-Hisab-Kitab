@@ -16,7 +16,7 @@ export function detailView() {
           <div class="pills">
             <span class="pill ${entry?.maalPoints ? "good" : "bad"}">Maal ${entry?.maalPoints || 0}</span>
             <span class="pill">${entry?.status === "seen" ? "Seen" : "Unseen"}</span>
-            <span class="pill ${entry?.dubli ? "good" : ""}">Dubli ${entry?.dubli ? "Yes" : "No"}</span>
+            ${entry?.dubli ? '<span class="pill good">Dubli</span>' : ""}
           </div>
         </div>
         <span class="big-score ${scoreClass(score)}">${score > 0 ? "+" : ""}${score}</span>
