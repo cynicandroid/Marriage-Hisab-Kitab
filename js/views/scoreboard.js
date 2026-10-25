@@ -47,8 +47,11 @@ function scoreTable(game) {
   const mobileTotals = game.players
     .map(
       (player) => `
-      <div class="mobile-score-row"><strong>${escape(player.name)}</strong>${scoreBadge(total(game, player.id))}</div>
-      <div class="mobile-amount-row"><span>Total amount</span><strong class="${total(game, player.id) >= 0 ? "positive" : "negative"}">${money(total(game, player.id) * game.settings.pointRate)}</strong></div>
+      <div class="mobile-total-row">
+        <strong>${escape(player.name)}</strong>
+        ${scoreBadge(total(game, player.id))}
+        <strong class="${total(game, player.id) >= 0 ? "positive" : "negative"}">${money(total(game, player.id) * game.settings.pointRate)}</strong>
+      </div>
     `,
     )
     .join("");
@@ -67,6 +70,7 @@ function scoreTable(game) {
     <div class="mobile-scoreboard">
       <div class="mobile-total-card">
         <h3>Live totals</h3>
+        <div class="mobile-total-header"><span>Player</span><span>Points</span><span>Amount</span></div>
         ${mobileTotals}
       </div>
       ${mobileRounds}

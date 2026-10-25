@@ -1,4 +1,5 @@
 import {
+  escape,
   getGame,
   id,
   navigate,
@@ -16,6 +17,17 @@ import { scoreboardView } from "./js/views/scoreboard.js";
 import { roundView } from "./js/views/round.js";
 import { detailView } from "./js/views/detail.js";
 import { confirmModal, newGameForm } from "./js/modals.js";
+
+let stopActiveStepperHold = null;
+[
+  "pointerup",
+  "pointercancel",
+  "touchend",
+  "touchcancel",
+].forEach((eventName) =>
+  window.addEventListener(eventName, () => stopActiveStepperHold?.(), true),
+);
+window.addEventListener("blur", () => stopActiveStepperHold?.());
 
 const views = {
   home: homeView,
@@ -174,7 +186,7 @@ function bind() {
       element.addEventListener("click", selectWinnerOption),
     );
   document
-    .querySelectorAll("[data-status]")
+    .querySelectorAll(".status-toggle")
     .forEach((element) => element.addEventListener("click", statusClick));
   document
     .querySelectorAll("[data-step]")
@@ -186,14 +198,19 @@ function bind() {
       const stopHolding = () => {
         clearTimeout(holdTimer);
         clearInterval(repeatTimer);
+        if (stopActiveStepperHold === stopHolding)
+          stopActiveStepperHold = null;
       };
-      element.addEventListener("pointerdown", () => {
-        if (element.disabled) return;
+      element.addEventListener("pointerdown", (event) => {
+        if (element.disabled || !event.isPrimary || event.button !== 0) return;
+        stopActiveStepperHold?.();
+        stopActiveStepperHold = stopHolding;
+        element.setPointerCapture?.(event.pointerId);
         holdTimer = setTimeout(() => {
           repeatTimer = setInterval(() => stepClick({ currentTarget: element }), 90);
         }, 450);
       });
-      ["pointerup", "pointercancel", "pointerleave"].forEach((eventName) =>
+      ["pointerup", "pointercancel", "lostpointercapture"].forEach((eventName) =>
         element.addEventListener(eventName, stopHolding),
       );
     });
@@ -208,7 +225,7 @@ function resizePlayerFields(event) {
   document.querySelector("#new-player-fields").innerHTML = Array.from(
     { length: count },
     (_, index) =>
-      `<div class="field"><label>Player ${index + 1}</label><input name="player-${index}" value="${existing[index] || `Player ${index + 1}`}" required /></div>`,
+      `<div class="field new-game-row"><label>Player ${index + 1}</label><input name="player-${index}" value="${escape(existing[index] || `Player ${index + 1}`)}" required /></div>`,
   ).join("");
 }
 
@@ -296,7 +313,7 @@ function selectWinnerOption(event) {
         .querySelector(".player-top")
         .insertAdjacentHTML(
           "beforeend",
-          '<span class="winner-label">♛ Winner</span>',
+          '<span class="winner-label">♛ W</span>',
         );
     if (!selected && label) label.remove();
   });
@@ -304,31 +321,44 @@ function selectWinnerOption(event) {
 function setWinnerSeen(playerId) {
   const card = document.querySelector(`[data-player-card="${playerId}"]`);
   if (card && card.dataset.status !== "seen")
-    card.querySelector('[data-status="seen"]')?.click();
+    card.querySelector("[data-status]")?.click();
 }
 function statusClick(event) {
   const card = event.currentTarget.closest("[data-player-card]");
-  const seen = event.currentTarget.dataset.status === "seen";
+  const seen = card.dataset.status !== "seen";
   card.dataset.status = seen ? "seen" : "unseen";
+  event.currentTarget.dataset.status = seen ? "seen" : "unseen";
+  event.currentTarget.textContent = seen ? "● Seen" : "○ Unseen";
+  event.currentTarget.setAttribute("aria-pressed", String(seen));
   card.querySelector(".maal-row")?.classList.toggle("is-disabled", !seen);
   if (!seen) card.querySelector("[data-maal]").textContent = "0";
-  card
-    .querySelectorAll("[data-status]")
-    .forEach((button) =>
-      button.classList.toggle(
-        "selected",
-        button.dataset.status === event.currentTarget.dataset.status,
-      ),
-    );
-  card.querySelector('[data-status="seen"]').classList.toggle("seen", seen);
-  card
-    .querySelector('[data-status="unseen"]')
-    .classList.toggle("unseen", !seen);
+  event.currentTarget.classList.toggle("seen", seen);
+  event.currentTarget.classList.toggle("unseen", !seen);
   card.querySelectorAll("[data-step], [data-dubli]").forEach((control) => {
     control.disabled = !seen;
   });
   card.querySelector(".stepper")?.setAttribute("data-tooltip", seen ? "" : "Only Seen players can have Maal points.");
   if (!seen) card.querySelector("[data-dubli]").checked = false;
+  if (!seen && document.querySelector("#winner")?.value === card.dataset.playerCard)
+    clearWinnerSelection();
+}
+function clearWinnerSelection() {
+  document.querySelector("#winner").value = "";
+  const trigger = document.querySelector("[data-winner-trigger]");
+  trigger.classList.remove("has-value");
+  trigger.innerHTML = '<span class="winner-trigger-person"><span class="winner-trigger-avatar">♛</span><span><small>Winning player</small><strong>Select a winner</strong></span></span><span class="winner-trigger-chevron">⌄</span>';
+  document.querySelectorAll("[data-winner-option]").forEach((option) => {
+    option.classList.remove("selected");
+    option.setAttribute("aria-selected", "false");
+    option.querySelector(".winner-option-check").textContent = "";
+    option.querySelector("small").textContent = "Choose as winner";
+  });
+  document.querySelectorAll("[data-player-card]").forEach((playerCard) => {
+    playerCard.classList.remove("is-winner");
+    playerCard.querySelector(".winner-label")?.remove();
+  });
+  document.querySelector('#round-form button[type="submit"]')?.setAttribute("disabled", "");
+  document.querySelector(".calculate-hint")?.removeAttribute("hidden");
 }
 function stepClick(event) {
   const card = event.currentTarget.closest("[data-player-card]");
@@ -380,9 +410,7 @@ function saveRound(event) {
     (card) => ({
       playerId: card.dataset.playerCard,
       maalPoints: Number(card.querySelector("[data-maal]").textContent),
-      status:
-        card.querySelector("[data-status].selected")?.dataset.status ||
-        "unseen",
+      status: card.dataset.status || "unseen",
       dubli: card.querySelector("[data-dubli]").checked,
     }),
   );

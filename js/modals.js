@@ -8,7 +8,7 @@ export function newGameForm() {
   const playerFields = names
     .map(
       (name, index) => `
-    <div class="field">
+    <div class="field new-game-row">
       <label>Player ${index + 1}</label>
       <input name="player-${index}" value="${escape(name)}" required />
     </div>
@@ -30,22 +30,22 @@ export function newGameForm() {
 
   return `
     <div class="modal-backdrop">
-      <div class="modal">
+      <div class="modal new-game-modal">
         <div class="modal-header"><h2>New Game</h2><button class="close" data-action="close-modal">×</button></div>
         <form id="new-game-form">
           <div class="modal-body">
-            <div class="field"><label for="game-name">Game name</label><input id="game-name" name="name" value="${escape(uniqueName())}" required /></div>
-            <div class="field"><label for="player-count">Players</label><select id="player-count" name="count">${countOptions}</select></div>
+            <div class="field new-game-row"><label for="game-name">Game name</label><input id="game-name" name="name" value="${escape(uniqueName())}" required /></div>
+            <div class="field new-game-row"><label for="player-count">Players</label><select id="player-count" name="count">${countOptions}</select></div>
             <div class="form-section">
               <h2>Players</h2>
-              <div class="player-fields" id="new-player-fields">${playerFields}</div>
+              <div class="player-fields new-game-players" id="new-player-fields">${playerFields}</div>
             </div>
             <div class="form-section">
               <h2>Point settings</h2>
-              <div class="field-grid">
-                <div class="field"><label>Point rate</label><select name="rate">${rateOptions}</select></div>
-                <div class="field"><label>Seen charge</label><input type="number" name="seen" value="3" min="0" max="100" /></div>
-                <div class="field"><label>Unseen charge</label><input type="number" name="unseen" value="10" min="0" max="100" /></div>
+              <div class="field-grid new-game-settings">
+                <div class="field new-game-row"><label>Point rate</label><select name="rate">${rateOptions}</select></div>
+                <div class="field new-game-row"><label>Seen charge</label><input type="number" name="seen" value="3" min="0" max="100" /></div>
+                <div class="field new-game-row"><label>Unseen charge</label><input type="number" name="unseen" value="10" min="0" max="100" /></div>
               </div>
             </div>
           </div>

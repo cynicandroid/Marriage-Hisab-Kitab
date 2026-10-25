@@ -92,6 +92,9 @@ export function configView() {
         <h2>Default player names</h2>
         <div class="player-fields">${names}</div>
       </div>
+      <div class="config-actions">
+        <button type="button" class="button success" data-action="navigate" data-view="home">Save Config</button>
+      </div>
     </div>
   `;
 }

@@ -2,15 +2,14 @@ import { escape, getGame, state } from "../core.js";
 
 function playerInput(player, entry, isWinner) {
   return `
-    <div class="player-card ${isWinner ? "is-winner" : ""}" data-player-card="${player.id}">
+    <div class="player-card ${isWinner ? "is-winner" : ""}" data-player-card="${player.id}" data-status="${entry.status}">
       <div class="player-top">
         <span class="avatar">${escape(player.name.charAt(0).toUpperCase())}</span>
         <span class="player-name">${escape(player.name)}</span>
-        ${isWinner ? '<span class="winner-label">♛ Winner</span>' : ""}
+        ${isWinner ? '<span class="winner-label">♛ W</span>' : ""}
       </div>
-      <div class="segmented">
-        <button type="button" class="${entry.status === "seen" ? "selected seen" : ""}" data-status="seen">◉ Seen</button>
-        <button type="button" class="${entry.status === "unseen" ? "selected unseen" : ""}" data-status="unseen">◌ Unseen</button>
+      <div class="status-control">
+        <button type="button" class="status-toggle ${entry.status}" data-status="${entry.status}" aria-pressed="${entry.status === "seen"}">${entry.status === "seen" ? "● Seen" : "○ Unseen"}</button>
       </div>
       <label class="toggle"><input type="checkbox" data-dubli ${entry.dubli ? "checked" : ""} ${entry.status !== "seen" ? "disabled" : ""}/> Dubli</label>
       <div class="maal-row ${entry.status !== "seen" ? "is-disabled" : ""}">
@@ -70,13 +69,19 @@ export function roundView() {
       ),
     )
     .join("");
+  const playerNameWidth = Math.max(
+    8,
+    ...game.players.map((player) => [...player.name].length),
+  );
 
   return `
     <button class="back-link" data-action="navigate" data-view="scoreboard">← Back to scoreboard</button>
-    <div class="round-hero">
-      <p class="eyebrow" style="color:#fff">Round ${editing?.number || game.rounds.length + 1}</p>
-      <h1>Enter Maal Points</h1>
-      <p>Choose the winner, then add each player’s status and maal.</p>
+    <div class="round-toolbar">
+      <div>
+        <p class="eyebrow">Round ${editing?.number || game.rounds.length + 1}</p>
+        <h1>Enter Maal Points</h1>
+      </div>
+      <p>Choose the winner, then set each player’s status and Maal.</p>
     </div>
     <form id="round-form" data-editing="${editing?.id || ""}">
       <div class="winner-field">
@@ -90,7 +95,7 @@ export function roundView() {
           <div class="winner-picker-menu" data-winner-menu role="listbox">${options}</div>
         </div>
       </div>
-      <div class="round-player-grid">${playerCards}</div>
+      <div class="round-player-grid" style="--player-name-width:${playerNameWidth}ch">${playerCards}</div>
       <div class="notice">Unseen pays maal plus its charge. Seen with maal uses the total-maal rule plus its charge. The winner receives the total.</div>
       <div class="sticky-actions">
         <button type="button" class="button ghost" data-action="cancel-round">Cancel</button>
