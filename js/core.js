@@ -2,6 +2,8 @@ const STORAGE = {
   games: "marriage-web-games",
   prefs: "marriage-web-prefs",
 };
+export const APP_NAME = "Marriage Hisab Kitab";
+export const CACHE_VERSION = "v8";
 const defaultPrefs = {
   playerCount: 5,
   names: ["Saroj", "Raj", "Padam", "Prakash", "Pragyan"],

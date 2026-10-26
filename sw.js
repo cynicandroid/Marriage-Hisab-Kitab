@@ -1,4 +1,7 @@
-const CACHE_NAME = "marriage-hisab-kitab-v5";
+// Keep CACHE_VERSION in sync with js/core.js. A higher value installs a new
+// service worker and causes the app's update popup to appear.
+const CACHE_VERSION = "v8";
+const CACHE_NAME = `marriage-hisab-kitab-${CACHE_VERSION}`;
 const FONT_STYLESHEET =
   "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap";
 const APP_SHELL = [

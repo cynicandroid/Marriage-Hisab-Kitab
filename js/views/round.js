@@ -90,7 +90,7 @@ export function roundView() {
       : "";
     return `
       <button class="back-link" data-action="navigate" data-view="scoreboard">← Back to scoreboard</button>
-      <div class="round-toolbar"><div><h1>Round ${editing?.number || game.rounds.length + 1}</h1><p class="round-subtitle">${isCalculation ? "Enter win points" : "Haat Bolam"}</p></div><div class="call-total"><span>Total Haat: <strong data-total-calls>${entries.reduce((sum, entry) => sum + (Number(entry.call) || 0), 0)}</strong></span>${isCalculation ? `<span>Total points: <strong data-total-wins>${totalWins}</strong></span>` : ""}</div></div>
+      <div class="round-toolbar ${isCalculation ? "calculation-toolbar" : ""}"><div><h1>Round ${editing?.number || game.rounds.length + 1}</h1><p class="round-subtitle">${isCalculation ? "Enter Game Haat" : "Haat Bolam"}</p></div><div class="call-total"><span>Boleko Haat: <strong data-total-calls>${entries.reduce((sum, entry) => sum + (Number(entry.call) || 0), 0)}</strong></span>${isCalculation ? `<span>Game Haat: <strong data-total-wins>${totalWins}</strong></span>` : ""}</div></div>
       <form id="round-form" data-editing="${editing?.id || ""}" data-phase="${isCalculation ? "calculate" : "calls"}">
         <div class="round-player-grid">${playerCards}</div>
         <div class="notice">${isCalculation ? "Meet your haat to score the haat. Each extra win adds 0.1 points; missing your haat scores negative points equal to your haat." : "Each player records the number of haat they expect to win. Save haats, then enter the haat won after the game ends."}</div>

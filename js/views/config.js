@@ -1,4 +1,4 @@
-import { currencies, escape, money, rates, state } from "../core.js";
+import { APP_NAME, CACHE_VERSION, currencies, escape, money, rates, state } from "../core.js";
 
 function currencyPicker() {
   const selectedCurrency = state.prefs.currency || "USD";
@@ -96,5 +96,6 @@ export function configView() {
         <button type="button" class="button success" data-action="navigate" data-view="home">Save Config</button>
       </div>
     </div>
+    <footer class="app-version"><span>${APP_NAME}</span><span>Cache ${CACHE_VERSION}</span></footer>
   `;
 }

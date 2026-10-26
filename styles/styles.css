@@ -536,6 +536,16 @@ button {
   justify-content: flex-end;
   margin-top: 18px;
 }
+.app-version {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 760px;
+  margin: 18px auto 0;
+  padding: 0 4px;
+  color: var(--muted);
+  font-size: 11px;
+}
 .round-toolbar {
   display: flex;
   align-items: end;
@@ -792,11 +802,16 @@ button {
 .call-break-score-table {
   min-width: 0;
   table-layout: fixed;
+  color: var(--ink);
+  background: #fff;
 }
 .call-break-score-table th,
 .call-break-score-table td {
   padding: 9px 4px;
   font-size: 12px;
+  color: var(--ink);
+  background: #fff;
+  border-color: #f0e9ea;
 }
 .call-break-score-table th {
   overflow-wrap: anywhere;
@@ -838,6 +853,19 @@ button {
 .call-break-score-table tfoot td {
   padding-top: 14px;
   font-size: 10px;
+}
+.call-break-score-table tbody td:first-child,
+.call-break-score-table tfoot td {
+  color: var(--ink);
+  background: #fff;
+}
+.call-break-score-table tbody td:not(:first-child) {
+  color: var(--ink);
+  background: #fff;
+}
+.score-table.call-break-score-table tfoot tr:first-child td {
+  color: var(--ink);
+  background: #fff;
 }
 .call-break-score-table tfoot .call-break-score {
   font-size: 10px;
@@ -1070,7 +1098,41 @@ button {
   .call-total {
     margin-left: 0;
     display: grid;
+    grid-template-columns: 1fr;
+    grid-auto-flow: row;
     gap: 2px;
+    align-items: end;
+  }
+  .round-toolbar > .call-total {
+    display: grid;
+    align-items: end;
+  }
+  .calculation-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    column-gap: 8px;
+    row-gap: 2px;
+  }
+  .calculation-toolbar > div:first-child,
+  .calculation-toolbar > .call-total {
+    display: contents;
+  }
+  .calculation-toolbar h1 {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .calculation-toolbar .round-subtitle {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .calculation-toolbar .call-total > span:first-child {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .calculation-toolbar .call-total > span:last-child {
+    grid-column: 2;
+    grid-row: 2;
   }
   .player-top {
     min-width: 0;
@@ -1699,6 +1761,42 @@ button {
 [data-theme="dark"] .mobile-total-row .negative {
   color: #ff9ca5;
   background: #4a252b;
+}
+[data-theme="dark"] .call-break-score-table tbody td:first-child,
+[data-theme="dark"] .call-break-score-table tfoot td {
+  color: #fff;
+  background: #000;
+  border-color: #272727;
+}
+[data-theme="dark"] .call-break-score-table tbody td:not(:first-child) {
+  color: #fff;
+  background: #000;
+  border-color: #272727;
+}
+[data-theme="dark"] .call-break-score-table,
+[data-theme="dark"] .call-break-score-table th,
+[data-theme="dark"] .call-break-score-table td {
+  color: #fff;
+  background: #000;
+  border-color: #272727;
+}
+[data-theme="dark"] .call-break-score-table .call-break-score {
+  color: #fff;
+}
+[data-theme="dark"] .call-break-score-table .call-break-score.positive {
+  color: #8de0ad;
+}
+[data-theme="dark"] .call-break-score-table .call-break-score.negative {
+  color: #ff9ca5;
+}
+[data-theme="dark"] .call-break-score-table .call-break-call,
+[data-theme="dark"] .call-break-score-table .call-break-divider {
+  color: #d4c4c7;
+}
+[data-theme="dark"] .score-table.call-break-score-table tfoot tr:first-child td {
+  color: #fff !important;
+  background: #000 !important;
+  border-color: #272727;
 }
 [data-theme="dark"] .toggle input {
   appearance: none;

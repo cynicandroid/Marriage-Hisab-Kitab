@@ -753,6 +753,9 @@ function setupServiceWorker() {
       });
     });
     showUpdate(registration.waiting);
+    // Check the server immediately so a higher CACHE_VERSION is discovered
+    // without waiting for the browser's periodic service-worker check.
+    registration.update().catch(() => {});
 
     navigator.serviceWorker.addEventListener("controllerchange", () => {
       window.location.reload();
