@@ -5,6 +5,7 @@ const STORAGE = {
 const defaultPrefs = {
   playerCount: 5,
   names: ["Saroj", "Raj", "Padam", "Prakash", "Pragyan"],
+  callBreakUseDefaultNames: false,
   pointRate: 0.25,
   currency: "USD",
 };
@@ -132,6 +133,16 @@ export function calculateRoundScores(entries, settings, winnerId) {
   scores[winnerId] = winnerGain;
   return scores;
 }
+export function calculateCallBreakScores(entries) {
+  return Object.fromEntries(
+    entries.map((entry) => {
+      const call = Number(entry.call) || 0;
+      const wins = Number(entry.wins) || 0;
+      const score = wins < call ? -call : call + (wins - call) * 0.1;
+      return [entry.playerId, Math.round(score * 10) / 10];
+    }),
+  );
+}
 export function scoreClass(score) {
   return score > 0 ? "positive" : score < 0 ? "negative" : "zero";
 }
@@ -147,10 +158,16 @@ export function escape(value) {
       ],
   );
 }
-export function uniqueName() {
+export function uniqueName(gameType = "marriage") {
   const date = new Date();
-  const base = `${date.toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })} Ko Game`;
-  return `${base} (${date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })})`;
+  const month = date.toLocaleDateString("en-US", { month: "short" });
+  const day = date.toLocaleDateString("en-US", { day: "numeric" });
+  const time = date.toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  const gameLabel = gameType === "call-break" ? "Call-Break" : "Marriage";
+  return `${month}, ${day} ${gameLabel} (${time})`;
 }
 
 let renderer = () => {};

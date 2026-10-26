@@ -16,17 +16,25 @@ function gameSettingPicker(name, label, value, options) {
   `;
 }
 
-export function newGameForm() {
-  const names = Array.from(
-    { length: state.prefs.playerCount },
-    (_, index) => state.prefs.names[index] || `Player ${index + 1}`,
-  );
+export function newGameForm(gameType = "marriage") {
+  const isCallBreak = gameType === "call-break";
+  const title = isCallBreak ? "New Call-Break Game" : "New Marriage Game";
+  const callBreakDefaults = ["Upasana", "Bandana", "Laxmi", "Smeeta"];
+  const names = isCallBreak
+    ? (state.prefs.callBreakUseDefaultNames
+        ? callBreakDefaults.map((fallback, index) => state.prefs.names[index] || fallback)
+        : callBreakDefaults)
+    : Array.from(
+        { length: state.prefs.playerCount },
+        (_, index) => state.prefs.names[index] || `Player ${index + 1}`,
+      );
   const playerFields = names
     .map(
       (name, index) => `
-    <div class="field new-game-row">
-      <label>Player ${index + 1}</label>
+    <div class="field new-game-row reorderable-player-row">
+      <label>Player <span data-player-position>${index + 1}</span></label>
       <input name="player-${index}" value="${escape(name)}" required />
+      <div class="player-reorder-controls"><button type="button" class="icon-button" data-reorder-player="up" aria-label="Move player up" ${index === 0 ? "disabled" : ""}>↑</button><button type="button" class="icon-button" data-reorder-player="down" aria-label="Move player down" ${index === names.length - 1 ? "disabled" : ""}>↓</button></div>
     </div>
   `,
     )
@@ -34,25 +42,29 @@ export function newGameForm() {
   const playerOptions = Array.from({ length: 7 }, (_, index) => index + 2)
     .map((count) => ({ value: count, label: `${count} players` }));
   const rateOptions = rates.map((rate) => ({ value: rate, label: money(rate) }));
+  const playerCountField = isCallBreak
+    ? '<input type="hidden" name="count" value="4" />'
+    : `<div class="field new-game-row"><label for="player-count">Players</label>${gameSettingPicker("count", "Players", state.prefs.playerCount, playerOptions)}</div>`;
 
   return `
     <div class="modal-backdrop">
       <div class="modal new-game-modal">
-        <div class="modal-header"><h2>New Game</h2><button class="close" data-action="close-modal">×</button></div>
-        <form id="new-game-form">
+        <div class="modal-header"><h2>${title}</h2><button class="close" data-action="close-modal">×</button></div>
+        <form id="new-game-form" data-game-type="${gameType}">
           <div class="modal-body">
-            <div class="field new-game-row"><label for="game-name">Game name</label><input id="game-name" name="name" value="${escape(uniqueName())}" required /></div>
-            <div class="field new-game-row"><label for="player-count">Players</label>${gameSettingPicker("count", "Players", state.prefs.playerCount, playerOptions)}</div>
+            <div class="field new-game-row"><label for="game-name">Game name</label><input id="game-name" name="name" value="${escape(uniqueName(gameType))}" required /></div>
+            ${playerCountField}
             <div class="form-section">
               <h2>Players</h2>
               <div class="player-fields new-game-players" id="new-player-fields">${playerFields}</div>
             </div>
             <div class="form-section">
-              <h2>Point settings</h2>
+              <h2>${isCallBreak ? "Game settings" : "Point settings"}</h2>
               <div class="field-grid new-game-settings">
-                <div class="field new-game-row"><label>Point rate</label>${gameSettingPicker("rate", "Point rate", state.prefs.pointRate, rateOptions)}</div>
-                <div class="field new-game-row"><label>Seen charge</label><input type="number" name="seen" value="3" min="0" max="100" /></div>
-                <div class="field new-game-row"><label>Unseen charge</label><input type="number" name="unseen" value="10" min="0" max="100" /></div>
+                ${isCallBreak ? "" : `<div class="field new-game-row"><label>Point rate</label>${gameSettingPicker("rate", "Point rate", state.prefs.pointRate, rateOptions)}</div>`}
+                ${isCallBreak
+                  ? '<div class="field new-game-row"><label>Number of Rounds</label><input type="number" name="rounds" value="5" min="1" max="100" /></div>'
+                  : '<div class="field new-game-row"><label>Seen charge</label><input type="number" name="seen" value="3" min="0" max="100" /></div><div class="field new-game-row"><label>Unseen charge</label><input type="number" name="unseen" value="10" min="0" max="100" /></div>'}
               </div>
             </div>
           </div>

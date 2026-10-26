@@ -38,7 +38,8 @@ export function homeView() {
         <div class="hero-tagline">SATHI HO AJJA TA JITNE HO</div>
       </div>
     </section>
-    <button class="button primary home-new-game" data-action="new-game">＋ New Game</button>
+    <button class="button primary home-new-game" data-action="new-game">＋ New Marriage Game</button>
+    <button class="button primary home-new-game" data-action="new-call-break-game">＋ New Call-Break Game</button>
     <section class="section">
       <div class="section-title">
         <h2>Games</h2>

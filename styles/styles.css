@@ -146,6 +146,14 @@ button {
 .button.primary:hover {
   background: var(--red-dark);
 }
+.button.primary:disabled,
+.button.primary:disabled:hover {
+  color: #fff;
+  background: #aaa5a6;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
 .button.secondary {
   color: var(--red);
   background: var(--red-soft);
@@ -454,6 +462,19 @@ button {
     700 18px "Space Grotesk",
     sans-serif;
 }
+.config-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+.config-section-heading h2 {
+  margin-bottom: 0;
+}
+.config-name-toggle {
+  justify-content: flex-end;
+}
 .player-fields {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -477,6 +498,19 @@ button {
 #new-game-form .new-game-row select {
   min-width: 0;
   padding: 9px 11px;
+}
+.reorderable-player-row {
+  grid-template-columns: minmax(96px, 126px) minmax(0, 1fr) auto !important;
+}
+.player-reorder-controls {
+  display: flex;
+  gap: 4px;
+}
+.player-reorder-controls .icon-button {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  font-size: 15px;
 }
 #new-game-form .new-game-players,
 #new-game-form .new-game-settings {
@@ -668,6 +702,173 @@ button {
   border: 2px solid var(--red);
   padding: 9px 13px;
 }
+.call-break-player-card {
+  grid-template-columns: minmax(175px, 1fr) minmax(0, 3fr);
+}
+.call-control {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+}
+.wins-control {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+}
+.call-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+}
+.call-options {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(24px, 1fr));
+  gap: 4px;
+}
+.wins-options {
+  grid-template-columns: repeat(9, minmax(20px, 1fr));
+}
+.calculation-call-options {
+  grid-template-columns: repeat(9, minmax(20px, 1fr));
+}
+.call-option-spacer {
+  min-height: 32px;
+}
+.call-option {
+  min-width: 0;
+  min-height: 32px;
+  padding: 4px 2px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--ink);
+  background: var(--surface);
+  font-weight: 700;
+}
+.call-option:hover,
+.call-option.selected {
+  color: #fff;
+  background: var(--green);
+  border-color: var(--green);
+}
+.call-option:disabled {
+  cursor: default;
+  opacity: 1;
+}
+.call-control .field {
+  margin: 0;
+}
+.call-control .field input {
+  padding: 7px 8px;
+}
+.call-total {
+  margin-left: auto;
+  display: flex;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.call-total strong {
+  color: var(--green);
+  font-size: 17px;
+}
+.call-break-round-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+.call-break-score-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+.call-break-score-table {
+  min-width: 0;
+  table-layout: fixed;
+}
+.call-break-score-table th,
+.call-break-score-table td {
+  padding: 9px 4px;
+  font-size: 12px;
+}
+.call-break-score-table th {
+  overflow-wrap: anywhere;
+  font-size: 10px;
+}
+.call-break-score-table th:first-child,
+.call-break-score-table td:first-child {
+  width: 34px;
+}
+.call-break-score-table th:not(:first-child),
+.call-break-score-table td:not(:first-child) {
+  text-align: center;
+}
+.call-break-divider {
+  color: var(--muted);
+}
+.call-break-call {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+.call-break-score {
+  color: var(--ink);
+  font-weight: 700;
+}
+.call-break-score.positive {
+  color: var(--green);
+}
+.call-break-score.negative {
+  display: inline-grid;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 5px;
+  place-items: center;
+  border: 2px solid var(--red);
+  border-radius: 50%;
+  color: var(--red);
+}
+.call-break-score-table tfoot td {
+  padding-top: 14px;
+  font-size: 10px;
+}
+.call-break-score-table tfoot .call-break-score {
+  font-size: 10px;
+}
+.score-table.call-break-score-table tfoot tr:last-child td,
+.score-table.call-break-score-table tfoot tr:last-child .call-break-score {
+  font-size: 10px;
+}
+@media (max-width: 700px) {
+  .call-break-score-table th,
+  .call-break-score-table td {
+    padding: 6px 2px;
+    font-size: 10px;
+  }
+  .call-break-score-table th:first-child,
+  .call-break-score-table td:first-child {
+    width: 27px;
+  }
+  .call-break-call {
+    font-size: 10px;
+  }
+  .call-break-round-cell {
+    gap: 2px;
+  }
+  .call-break-score.negative {
+    min-width: 27px;
+    height: 27px;
+    padding: 0 3px;
+    border-width: 1px;
+  }
+}
 .player-top {
   display: flex;
   align-items: center;
@@ -843,6 +1044,33 @@ button {
     gap: 5px;
     padding: 5px 6px;
     overflow: visible;
+  }
+  .call-break-player-card,
+  .call-break-player-card.is-winner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding: 9px 10px;
+  }
+  .call-break-player-card .call-control {
+    grid-column: 1;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .call-break-player-card .wins-control {
+    grid-column: 1 / -1;
+  }
+  .call-break-player-card .wins-options {
+    grid-template-columns: repeat(9, minmax(24px, 1fr));
+  }
+  .call-break-player-card .calculation-call-options {
+    grid-template-columns: repeat(9, minmax(24px, 1fr));
+  }
+  .call-break-player-card .call-control .field {
+    grid-column: 1 / -1;
+  }
+  .call-total {
+    margin-left: 0;
+    display: grid;
+    gap: 2px;
   }
   .player-top {
     min-width: 0;
@@ -1551,6 +1779,14 @@ button {
 .button.success:hover {
   background: #17683f;
 }
+.button.success:disabled,
+.button.success:disabled:hover {
+  color: #fff;
+  background: #aaa5a6;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
 .stepper[data-tooltip]:not([data-tooltip=""]) {
   position: relative;
 }
@@ -1722,6 +1958,12 @@ button {
   display: grid;
   gap: 8px;
   background: var(--red-soft);
+}
+.call-break-mobile-total .mobile-total-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.call-break-mobile-total .mobile-total-row > span {
+  justify-self: end;
 }
 .mobile-total-card h3 {
   margin: 0 0 2px;

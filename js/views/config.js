@@ -89,7 +89,7 @@ export function configView() {
         rates.map((rate) => ({ value: rate, label: money(rate) })),
       )}</div>
       <div class="form-section">
-        <h2>Default player names</h2>
+        <div class="config-section-heading"><h2>Default player names</h2><label class="toggle config-name-toggle"><input type="checkbox" data-call-break-default-names ${state.prefs.callBreakUseDefaultNames ? "checked" : ""} /> default Name to Call-Break</label></div>
         <div class="player-fields">${names}</div>
       </div>
       <div class="config-actions">

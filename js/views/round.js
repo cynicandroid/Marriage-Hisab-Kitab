@@ -1,5 +1,34 @@
 import { escape, getGame, state } from "../core.js";
 
+function callBreakPlayerInput(player, entry, isCalculation, allowCallEdit = false) {
+  const call = entry.call ?? "";
+  const wins = entry.wins ?? "";
+  const canEditCalls = !isCalculation || allowCallEdit;
+  const callValues = isCalculation ? [null, ...Array.from({ length: 8 }, (_, index) => index + 1)] : Array.from({ length: 8 }, (_, index) => index + 1);
+  const callOptions = callValues
+    .map((value) => value === null
+      ? '<span class="call-option-spacer" aria-hidden="true"></span>'
+      : `<button type="button" class="call-option ${value === call ? "selected" : ""}" data-call-option="${value}" ${canEditCalls ? "" : "disabled"} aria-pressed="${value === call}">${value}</button>`)
+    .join("");
+  const winsOptions = Array.from({ length: 9 }, (_, value) =>
+    `<button type="button" class="call-option ${value === wins ? "selected" : ""}" data-wins-option="${value}" ${isCalculation ? "" : "disabled"} aria-pressed="${value === wins}">${value}</button>`,
+  ).join("");
+  return `
+    <div class="player-card call-break-player-card" data-player-card="${player.id}">
+      <div class="player-top">
+        <span class="avatar">${escape(player.name.charAt(0).toUpperCase())}</span>
+        <span class="player-name">${escape(player.name)}</span>
+      </div>
+      <div class="call-control">
+        <span class="call-label">Haat</span>
+        <input type="hidden" data-call value="${call}" />
+        <div class="call-options ${isCalculation ? "calculation-call-options" : ""}" role="group" aria-label="Haat for ${escape(player.name)}">${callOptions}</div>
+        ${isCalculation ? `<div class="wins-control"><span class="call-label">Haat won</span><input type="hidden" data-wins value="${wins}" /><div class="call-options wins-options" role="group" aria-label="Haat won by ${escape(player.name)}">${winsOptions}</div></div>` : ""}
+      </div>
+    </div>
+  `;
+}
+
 function playerInput(player, entry, isWinner) {
   return `
     <div class="player-card ${isWinner ? "is-winner" : ""}" data-player-card="${player.id}" data-status="${entry.status}">
@@ -34,6 +63,44 @@ export function roundView() {
     ? game?.rounds.find((round) => round.id === state.roundId)
     : null;
   if (!game) return `<div class="empty">Game unavailable</div>`;
+  if (game.type === "call-break") {
+    const isCalculation = Boolean(editing);
+    const canEditCalls = Boolean(editing && editing.status !== "calls");
+    const roundNumber = editing?.number || game.rounds.length + 1;
+    const roundPlayers = game.players.map(
+      (_, index) => game.players[(index + roundNumber - 1) % game.players.length],
+    );
+    const entries = editing
+      ? editing.entries
+      : game.players.map((player) => ({ playerId: player.id, call: null, wins: 0 }));
+    const playerCards = roundPlayers
+      .map((player) => callBreakPlayerInput(
+        player,
+        entries.find((entry) => entry.playerId === player.id) || { call: null, wins: 0 },
+        isCalculation,
+        canEditCalls,
+      ))
+      .join("");
+    const totalWins = entries.reduce((sum, entry) => sum + (Number(entry.wins) || 0), 0);
+    const canSubmit = isCalculation
+      ? entries.every((entry) => entry.wins !== null && entry.wins !== undefined) && totalWins === 13
+      : entries.every((entry) => entry.call !== null && entry.call !== undefined);
+    const submitHint = isCalculation && totalWins !== 13
+      ? `Total points won is ${totalWins} and not 13 in total`
+      : "";
+    return `
+      <button class="back-link" data-action="navigate" data-view="scoreboard">← Back to scoreboard</button>
+      <div class="round-toolbar"><div><h1>Round ${editing?.number || game.rounds.length + 1}</h1><p class="round-subtitle">${isCalculation ? "Enter win points" : "Haat Bolam"}</p></div><div class="call-total"><span>Total Haat: <strong data-total-calls>${entries.reduce((sum, entry) => sum + (Number(entry.call) || 0), 0)}</strong></span>${isCalculation ? `<span>Total points: <strong data-total-wins>${totalWins}</strong></span>` : ""}</div></div>
+      <form id="round-form" data-editing="${editing?.id || ""}" data-phase="${isCalculation ? "calculate" : "calls"}">
+        <div class="round-player-grid">${playerCards}</div>
+        <div class="notice">${isCalculation ? "Meet your haat to score the haat. Each extra win adds 0.1 points; missing your haat scores negative points equal to your haat." : "Each player records the number of haat they expect to win. Save haats, then enter the haat won after the game ends."}</div>
+        <div class="sticky-actions">
+          <button type="button" class="button ghost" data-action="cancel-round">Cancel</button>
+          <button type="submit" class="button ${isCalculation ? "primary" : "success"}" ${!canSubmit ? "disabled" : ""} ${submitHint ? `title="${submitHint}"` : ""}>${isCalculation ? "Calculate Round" : "Save Haats"}</button>
+        </div>
+      </form>
+    `;
+  }
   const entries = editing
     ? editing.entries
     : game.players.map((player) => ({

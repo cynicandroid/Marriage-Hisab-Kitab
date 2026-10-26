@@ -1,6 +1,7 @@
 import {
   escape,
   calculateRoundScores,
+  calculateCallBreakScores,
   getGame,
   id,
   navigate,
@@ -8,6 +9,7 @@ import {
   save,
   setRenderer,
   state,
+  total,
   uniqueName,
 } from "./js/core.js";
 import { homeView } from "./js/views/home.js";
@@ -63,8 +65,8 @@ function showToast(message) {
 function closeModal() {
   document.querySelector("#modal-root").innerHTML = "";
 }
-function showNewGame() {
-  document.querySelector("#modal-root").innerHTML = newGameForm();
+function showNewGame(gameType = "marriage") {
+  document.querySelector("#modal-root").innerHTML = newGameForm(gameType);
   bind();
 }
 function showEditGame() {
@@ -91,6 +93,7 @@ function handleAction(event) {
   const action = event.currentTarget.dataset.action;
   if (action === "navigate") navigate(event.currentTarget.dataset.view);
   if (action === "new-game") showNewGame();
+  if (action === "new-call-break-game") showNewGame("call-break");
   if (action === "edit-game") showEditGame();
   if (action === "close-modal") closeModal();
   if (action === "toggle-theme") {
@@ -101,7 +104,26 @@ function handleAction(event) {
   }
   if (action === "open-game")
     navigate("scoreboard", event.currentTarget.dataset.id);
-  if (action === "add-round") navigate("round", state.gameId);
+  if (action === "calculate-call-break-round")
+    navigate("round", state.gameId, event.currentTarget.dataset.id);
+  if (action === "keep-playing") {
+    const game = getGame();
+    if (game?.type === "call-break") {
+      game.settings.allowExtraRounds = true;
+      save();
+      render();
+    }
+  }
+  if (action === "add-round") {
+    const game = getGame();
+    if (game?.type === "call-break" && game.rounds.some((round) => round.status === "calls")) {
+      showToast("Enter wins for the saved haats before starting another round");
+      return;
+    }
+    if (game?.type === "call-break" && !game.settings.allowExtraRounds && game.rounds.length >= game.settings.numberOfRounds) {
+      showToast(`This game is limited to ${game.settings.numberOfRounds} rounds`);
+    } else navigate("round", state.gameId);
+  }
   if (action === "cancel-round")
     showConfirmation(
       "Are you sure you want to cancel?",
@@ -145,8 +167,8 @@ function handleAction(event) {
     );
   if (action === "edit-round")
     showConfirmation(
-      "Are you sure you want to recalculate maal?",
-      "The saved scores for this round will be replaced when you calculate it again.",
+      getGame()?.type === "call-break" ? "Edit this Call-Break round?" : "Are you sure you want to recalculate maal?",
+      getGame()?.type === "call-break" ? "The haats and wins for this round can be updated before recalculating." : "The saved scores for this round will be replaced when you calculate it again.",
       () => {
         state.view = "round";
         render();
@@ -167,6 +189,10 @@ function bind() {
       save();
     }),
   );
+  document.querySelector("[data-call-break-default-names]")?.addEventListener("change", (event) => {
+    state.prefs.callBreakUseDefaultNames = event.currentTarget.checked;
+    save();
+  });
   document
     .querySelectorAll("[data-setting-trigger]")
     .forEach((element) => element.addEventListener("click", toggleSettingMenu));
@@ -199,6 +225,15 @@ function bind() {
     .forEach((element) =>
       element.addEventListener("click", selectWinnerOption),
     );
+  document
+    .querySelectorAll("[data-call-option]")
+    .forEach((element) => element.addEventListener("click", selectCallOption));
+  document
+    .querySelectorAll("[data-wins-option]")
+    .forEach((element) => element.addEventListener("click", selectWinsOption));
+  document
+    .querySelectorAll("[data-reorder-player]")
+    .forEach((element) => element.addEventListener("click", reorderCallBreakPlayer));
   document
     .querySelectorAll(".status-toggle")
     .forEach((element) => element.addEventListener("click", statusClick));
@@ -256,10 +291,11 @@ function resizePlayerFields(form, count) {
   const existing = [...form.querySelectorAll('[name^="player-"]')].map(
     (input) => input.value,
   );
+  const canReorder = form.id === "new-game-form";
   document.querySelector(`#${form.id === "edit-game-form" ? "edit" : "new"}-player-fields`).innerHTML = Array.from(
     { length: count },
     (_, index) =>
-      `<div class="field new-game-row"><label>Player ${index + 1}</label><input name="player-${index}" value="${escape(existing[index] || `Player ${index + 1}`)}" required /></div>`,
+      `<div class="field new-game-row ${canReorder ? "reorderable-player-row" : ""}"><label>Player <span data-player-position>${index + 1}</span></label><input name="player-${index}" value="${escape(existing[index] || `Player ${index + 1}`)}" required />${canReorder ? `<div class="player-reorder-controls"><button type="button" class="icon-button" data-reorder-player="up" aria-label="Move player up" ${index === 0 ? "disabled" : ""}>↑</button><button type="button" class="icon-button" data-reorder-player="down" aria-label="Move player down" ${index === count - 1 ? "disabled" : ""}>↓</button></div>` : ""}</div>`,
   ).join("");
 }
 
@@ -352,6 +388,83 @@ function selectWinnerOption(event) {
     if (!selected && label) label.remove();
   });
 }
+
+function selectCallOption(event) {
+  const option = event.currentTarget;
+  const card = option.closest("[data-player-card]");
+  const input = card?.querySelector("[data-call]");
+  if (!card || !input) return;
+  input.value = option.dataset.callOption;
+  card.querySelectorAll("[data-call-option]").forEach((button) => {
+    const selected = button === option;
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  });
+  const total = [...document.querySelectorAll("[data-call]")].reduce(
+    (sum, call) => sum + (Number(call.value) || 0),
+    0,
+  );
+  document.querySelector("[data-total-calls]").textContent = total;
+  const allCallsSelected = [...document.querySelectorAll("[data-call]")].every(
+    (call) => call.value,
+  );
+  document
+    .querySelector('#round-form[data-phase="calls"] button[type="submit"]')
+    ?.toggleAttribute("disabled", !allCallsSelected);
+}
+
+function selectWinsOption(event) {
+  const option = event.currentTarget;
+  const card = option.closest("[data-player-card]");
+  const input = card?.querySelector("[data-wins]");
+  if (!card || !input) return;
+  input.value = option.dataset.winsOption;
+  card.querySelectorAll("[data-wins-option]").forEach((button) => {
+    const selected = button === option;
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  });
+  const allWinsSelected = [...document.querySelectorAll("[data-wins]")].every(
+    (wins) => wins.value !== "",
+  );
+  const totalWins = [...document.querySelectorAll("[data-wins]")].reduce(
+    (sum, wins) => sum + (Number(wins.value) || 0),
+    0,
+  );
+  document.querySelector("[data-total-wins]").textContent = totalWins;
+  document
+    .querySelector('#round-form[data-phase="calculate"] button[type="submit"]')
+    ?.toggleAttribute("disabled", !allWinsSelected || totalWins !== 13);
+  const calculateButton = document.querySelector('#round-form[data-phase="calculate"] button[type="submit"]');
+  if (calculateButton) {
+    calculateButton.title = totalWins === 13
+      ? ""
+      : `Total points won is ${totalWins} and not 13 in total`;
+  }
+}
+
+function reorderCallBreakPlayer(event) {
+  const button = event.currentTarget;
+  const row = button.closest("[data-player-row]") || button.closest(".new-game-row");
+  const direction = button.dataset.reorderPlayer;
+  if (!row) return;
+  const sibling = direction === "up" ? row.previousElementSibling : row.nextElementSibling;
+  if (!sibling) return;
+  if (direction === "up") row.parentNode.insertBefore(row, sibling);
+  else row.parentNode.insertBefore(sibling, row);
+
+  [...row.parentNode.children].forEach((playerRow, index) => {
+    const input = playerRow.querySelector('input[name^="player-"]');
+    const position = playerRow.querySelector("[data-player-position]");
+    const up = playerRow.querySelector('[data-reorder-player="up"]');
+    const down = playerRow.querySelector('[data-reorder-player="down"]');
+    if (!input) return;
+    input.name = `player-${index}`;
+    if (position) position.textContent = index + 1;
+    if (up) up.disabled = index === 0;
+    if (down) down.disabled = index === row.parentNode.children.length - 1;
+  });
+}
 function setWinnerSeen(playerId) {
   const card = document.querySelector(`[data-player-card="${playerId}"]`);
   if (card && card.dataset.status !== "seen")
@@ -412,18 +525,22 @@ function createGame(event) {
   event.preventDefault();
   const form = new FormData(event.target);
   const count = Number(form.get("count"));
+  const gameType = event.target.dataset.gameType || "marriage";
   const game = {
     id: id(),
-    name: String(form.get("name")).trim() || uniqueName(),
+    type: gameType,
+    name: String(form.get("name")).trim() || uniqueName(gameType),
     players: Array.from({ length: count }, (_, index) => ({
       id: id(),
       name: String(form.get(`player-${index}`)).trim() || `Player ${index + 1}`,
     })),
-    settings: {
-      pointRate: Number(form.get("rate")),
-      seenPoint: Number(form.get("seen")),
-      unseenPoint: Number(form.get("unseen")),
-    },
+    settings: gameType === "call-break"
+      ? { pointRate: Number(form.get("rate")), numberOfRounds: Number(form.get("rounds")) }
+      : {
+          pointRate: Number(form.get("rate")),
+          seenPoint: Number(form.get("seen")),
+          unseenPoint: Number(form.get("unseen")),
+        },
     rounds: [],
     createdAt: new Date().toISOString(),
   };
@@ -465,6 +582,71 @@ function saveRound(event) {
   event.preventDefault();
   const game = getGame();
   const form = new FormData(event.target);
+  const editingId = event.target.dataset.editing;
+  const existing = editingId
+    ? game.rounds.find((round) => round.id === editingId)
+    : null;
+
+  if (game.type === "call-break") {
+    const wasPendingCallBreakRound = existing?.status === "calls";
+    const entries = [...document.querySelectorAll("[data-player-card]")].map(
+      (card) => ({
+        playerId: card.dataset.playerCard,
+        call: Number(card.querySelector("[data-call]").value),
+        wins: Number(card.querySelector("[data-wins]")?.value),
+      }),
+    );
+    if (entries.some((entry) => entry.call < 1 || entry.call > 8)) {
+      showToast("Haats must be between 1 and 8");
+      return;
+    }
+    if (event.target.dataset.phase === "calls") {
+      game.rounds.push({
+        id: id(),
+        number: game.rounds.length + 1,
+        winnerId: null,
+        entries: entries.map((entry) => ({ ...entry, wins: null })),
+        scores: {},
+        status: "calls",
+        createdAt: new Date().toISOString(),
+      });
+      save();
+      navigate("scoreboard", game.id);
+      showToast("Haats saved");
+      return;
+    }
+    if (entries.some((entry) => entry.wins < 0 || entry.wins > 8)) {
+      showToast("Wins must be between 0 and 8");
+      return;
+    }
+    const totalWins = entries.reduce((sum, entry) => sum + entry.wins, 0);
+    if (totalWins !== 13) {
+      showToast(`Total points won is ${totalWins} and not 13 in total`);
+      return;
+    }
+    const scores = calculateCallBreakScores(entries);
+    const completedRoundsBefore = game.rounds.filter((item) => item.status !== "calls").length;
+    const winnerId = [...entries].sort((a, b) => scores[b.playerId] - scores[a.playerId])[0].playerId;
+    const round = {
+      id: editingId || id(),
+      number: existing?.number || game.rounds.length + 1,
+      winnerId,
+      entries,
+      scores,
+      status: "complete",
+      createdAt: existing?.createdAt || new Date().toISOString(),
+    };
+    if (existing) game.rounds[game.rounds.indexOf(existing)] = round;
+    else game.rounds.push(round);
+    const finalCallBreakRound = wasPendingCallBreakRound && completedRoundsBefore < (game.settings.numberOfRounds || 5) &&
+      game.rounds.filter((item) => item.status !== "calls").length >= (game.settings.numberOfRounds || 5);
+    save();
+    navigate("scoreboard", game.id);
+    if (finalCallBreakRound) showCallBreakFinalRanking(game);
+    showToast("Round calculated");
+    return;
+  }
+
   const winnerId = form.get("winner");
   if (!winnerId) return;
   const entries = [...document.querySelectorAll("[data-player-card]")].map(
@@ -480,10 +662,6 @@ function saveRound(event) {
     return;
   }
   const scores = calculateRoundScores(entries, game.settings, winnerId);
-  const editingId = event.target.dataset.editing;
-  const existing = editingId
-    ? game.rounds.find((round) => round.id === editingId)
-    : null;
   const round = {
     id: editingId || id(),
     number: existing?.number || game.rounds.length + 1,
@@ -507,6 +685,21 @@ function shareGame() {
     navigator.clipboard
       ?.writeText(text)
       .then(() => showToast("Scoreboard copied"));
+}
+
+function showCallBreakFinalRanking(game) {
+  const ranking = [...game.players]
+    .sort((a, b) => total(game, b.id) - total(game, a.id))
+    .map((player, index) => `${index + 1}. ${escape(player.name)} — ${total(game, player.id)} points`)
+    .join("<br>");
+  const winner = escape([...game.players].sort((a, b) => total(game, b.id) - total(game, a.id))[0].name);
+  showConfirmation(
+    "Congratulations!",
+    `<strong>Congratulations to ${winner}!</strong><br><br>${ranking}`,
+    () => {},
+    "View final ranking",
+    "Close",
+  );
 }
 
 function setupInstallPrompt() {
