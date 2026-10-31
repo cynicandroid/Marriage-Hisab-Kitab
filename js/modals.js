@@ -48,8 +48,8 @@ export function newGameForm(gameType = "marriage") {
 
   return `
     <div class="modal-backdrop">
-      <div class="modal new-game-modal">
-        <div class="modal-header"><h2>${title}</h2><button class="close" data-action="close-modal">×</button></div>
+      <div class="modal new-game-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-header"><h2 id="modal-title">${title}</h2><button class="close" data-action="close-modal" aria-label="Close dialog">×</button></div>
         <form id="new-game-form" data-game-type="${gameType}">
           <div class="modal-body">
             <div class="field new-game-row"><label for="game-name">Game name</label><input id="game-name" name="name" value="${escape(uniqueName(gameType))}" required /></div>
@@ -89,8 +89,8 @@ export function editGameForm(game) {
   `).join("");
   return `
     <div class="modal-backdrop">
-      <div class="modal new-game-modal">
-        <div class="modal-header"><h2>Edit Game</h2><button class="close" data-action="close-modal">×</button></div>
+      <div class="modal new-game-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-header"><h2 id="modal-title">Edit Game</h2><button class="close" data-action="close-modal" aria-label="Close dialog">×</button></div>
         <form id="edit-game-form" data-game-id="${game.id}">
           <div class="modal-body">
             <div class="field new-game-row"><label for="count">Players</label>${gameSettingPicker("count", "Players", game.players.length, playerOptions)}</div>
@@ -111,8 +111,8 @@ export function confirmModal(
 ) {
   return `
     <div class="modal-backdrop">
-      <div class="modal" style="max-width:440px">
-        <div class="modal-header"><h2>${title}</h2><button class="close" data-action="close-modal">×</button></div>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-header"><h2 id="modal-title">${title}</h2><button class="close" data-action="close-modal" aria-label="Close dialog">×</button></div>
         <div class="modal-body"><p class="confirm-copy">${copy}</p></div>
         <div class="modal-footer"><button class="button ghost" data-action="close-modal">${cancelLabel}</button><button class="button danger" id="confirm-yes">${confirmLabel}</button></div>
       </div>

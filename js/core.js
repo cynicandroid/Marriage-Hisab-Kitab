@@ -3,7 +3,7 @@ const STORAGE = {
   prefs: "marriage-web-prefs",
 };
 export const APP_NAME = "Marriage Hisab Kitab";
-export const CACHE_VERSION = "v8";
+export const CACHE_VERSION = globalThis.MARRIAGE_CACHE_VERSION || "unknown";
 const defaultPrefs = {
   playerCount: 5,
   names: ["Saroj", "Raj", "Padam", "Prakash", "Pragyan"],

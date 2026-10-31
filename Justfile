@@ -12,7 +12,15 @@ build: check free-port
 # Validate the frontend JavaScript and required files.
 check:
     @test -f index.html
+    @test -f version.js
     @test -f styles/styles.css
+    @test -f assets/fonts/dm-sans-400.ttf
+    @test -f assets/fonts/dm-sans-500.ttf
+    @test -f assets/fonts/dm-sans-600.ttf
+    @test -f assets/fonts/dm-sans-700.ttf
+    @test -f assets/fonts/space-grotesk-500.ttf
+    @test -f assets/fonts/space-grotesk-600.ttf
+    @test -f assets/fonts/space-grotesk-700.ttf
     @test -f app.js
     @test -f manifest.webmanifest
     @test -f sw.js
@@ -42,6 +50,7 @@ check:
     @node --check js/views/round.js
     @node --check js/views/detail.js
     @node --check sw.js
+    @node --check version.js
 
 # Stop any process currently listening on the development port.
 free-port:

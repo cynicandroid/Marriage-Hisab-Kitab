@@ -22,6 +22,7 @@ import { detailView } from "./js/views/detail.js";
 import { confirmModal, editGameForm, newGameForm } from "./js/modals.js";
 
 let stopActiveStepperHold = null;
+let lastFocusedElement = null;
 [
   "pointerup",
   "pointercancel",
@@ -64,18 +65,26 @@ function showToast(message) {
 }
 function closeModal() {
   document.querySelector("#modal-root").innerHTML = "";
+  if (lastFocusedElement?.isConnected) lastFocusedElement.focus();
+  else document.querySelector("#main-content")?.focus?.();
+  lastFocusedElement = null;
 }
 function showNewGame(gameType = "marriage") {
+  lastFocusedElement = document.activeElement;
   document.querySelector("#modal-root").innerHTML = newGameForm(gameType);
   bind();
+  document.querySelector("#new-game-form input")?.focus();
 }
 function showEditGame() {
   const game = getGame();
   if (!game) return;
+  lastFocusedElement = document.activeElement;
   document.querySelector("#modal-root").innerHTML = editGameForm(game);
   bind();
+  document.querySelector("#edit-game-form input")?.focus();
 }
 function showConfirmation(title, copy, action, confirmLabel, cancelLabel) {
+  lastFocusedElement = document.activeElement;
   document.querySelector("#modal-root").innerHTML = confirmModal(
     title,
     copy,
@@ -87,7 +96,69 @@ function showConfirmation(title, copy, action, confirmLabel, cancelLabel) {
     action();
   };
   bind();
+  document.querySelector("#confirm-yes")?.focus();
 }
+
+function focusable(container) {
+  return [...container.querySelectorAll(
+    'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+  )].filter((element) => element.offsetParent !== null);
+}
+
+function closeOpenMenus() {
+  document.querySelectorAll(".setting-picker-menu.open, .winner-picker-menu.open").forEach((menu) => {
+    menu.classList.remove("open");
+    const trigger = menu.previousElementSibling;
+    trigger?.setAttribute("aria-expanded", "false");
+  });
+}
+
+function handleKeyboard(event) {
+  const modal = document.querySelector(".modal");
+  if (modal) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeModal();
+      return;
+    }
+    if (event.key === "Tab") {
+      const elements = focusable(modal);
+      if (!elements.length) return;
+      const first = elements[0];
+      const last = elements[elements.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+    return;
+  }
+
+  const openMenu = document.querySelector(
+    ".setting-picker-menu.open, .winner-picker-menu.open, .setting-picker-menu:focus-within, .winner-picker-menu:focus-within",
+  );
+  if (event.key === "Escape") {
+    if (openMenu) {
+      event.preventDefault();
+      closeOpenMenus();
+    }
+    return;
+  }
+  if (!openMenu || !["ArrowDown", "ArrowUp"].includes(event.key)) return;
+  const options = focusable(openMenu);
+  if (!options.length) return;
+  event.preventDefault();
+  const current = options.indexOf(document.activeElement);
+  const next = event.key === "ArrowDown"
+    ? (current + 1) % options.length
+    : (current - 1 + options.length) % options.length;
+  options[next].focus();
+}
+
+document.addEventListener("keydown", handleKeyboard);
 
 function handleAction(event) {
   const action = event.currentTarget.dataset.action;
@@ -304,6 +375,7 @@ function toggleSettingMenu(event) {
   const menu = document.querySelector(`[data-setting-menu="${preference}"]`);
   const open = menu.classList.toggle("open");
   event.currentTarget.setAttribute("aria-expanded", String(open));
+  if (open) menu.querySelector("[role=option]")?.focus();
 }
 function selectSettingOption(event) {
   const option = event.currentTarget;
@@ -343,6 +415,7 @@ function toggleWinnerMenu() {
   const menu = document.querySelector("[data-winner-menu]");
   const open = menu.classList.toggle("open");
   trigger.setAttribute("aria-expanded", String(open));
+  if (open) menu.querySelector("[role=option]")?.focus();
 }
 function selectWinnerOption(event) {
   const option = event.currentTarget;

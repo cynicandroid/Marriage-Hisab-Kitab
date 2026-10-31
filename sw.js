@@ -1,13 +1,21 @@
-// Keep CACHE_VERSION in sync with js/core.js. A higher value installs a new
-// service worker and causes the app's update popup to appear.
-const CACHE_VERSION = "v8";
+importScripts("./version.js");
+
+// A higher value installs a new service worker and causes the app's update
+// popup to appear. The value is shared with the page through version.js.
+const CACHE_VERSION = globalThis.MARRIAGE_CACHE_VERSION;
 const CACHE_NAME = `marriage-hisab-kitab-${CACHE_VERSION}`;
-const FONT_STYLESHEET =
-  "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap";
 const APP_SHELL = [
   "./",
   "./index.html",
+  "./version.js",
   "./styles/styles.css",
+  "./assets/fonts/dm-sans-400.ttf",
+  "./assets/fonts/dm-sans-500.ttf",
+  "./assets/fonts/dm-sans-600.ttf",
+  "./assets/fonts/dm-sans-700.ttf",
+  "./assets/fonts/space-grotesk-500.ttf",
+  "./assets/fonts/space-grotesk-600.ttf",
+  "./assets/fonts/space-grotesk-700.ttf",
   "./app.js",
   "./js/core.js",
   "./js/modals.js",
@@ -27,17 +35,8 @@ const APP_SHELL = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      await cache.addAll(APP_SHELL);
-
-      // Preload the stylesheet on first install. The font files referenced by
-      // it are fetched and cached by the runtime cache in the fetch handler.
-      // A font-service failure must not prevent the app shell from installing.
-      try {
-        await cache.add(FONT_STYLESHEET);
-      } catch {
-        // The app has local font fallbacks if Google Fonts is unavailable.
-      }
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(APP_SHELL);
     }),
   );
 });
@@ -65,13 +64,9 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   const requestUrl = new URL(event.request.url);
   const isSameOrigin = requestUrl.origin === self.location.origin;
-  const isGoogleFont =
-    requestUrl.hostname === "fonts.googleapis.com" ||
-    requestUrl.hostname === "fonts.gstatic.com";
-
-  // Only cache the app shell/assets and Google Fonts. Other external requests
-  // should behave like normal network requests and must not fill the app cache.
-  if (!isSameOrigin && !isGoogleFont) return;
+  // Only cache this app's own shell/assets. Other external requests should
+  // behave like normal network requests and must not fill the app cache.
+  if (!isSameOrigin) return;
 
   event.respondWith(
     caches
