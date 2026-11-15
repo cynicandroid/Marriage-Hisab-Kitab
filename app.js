@@ -23,6 +23,7 @@ import { confirmModal, editGameForm, newGameForm } from "./js/modals.js";
 
 let stopActiveStepperHold = null;
 let lastFocusedElement = null;
+let shareFallbackText = "";
 [
   "pointerup",
   "pointercancel",
@@ -167,6 +168,12 @@ function handleAction(event) {
   if (action === "new-call-break-game") showNewGame("call-break");
   if (action === "edit-game") showEditGame();
   if (action === "close-modal") closeModal();
+  if (action === "copy-share") {
+    navigator.clipboard?.writeText(shareFallbackText).then(() => {
+      closeModal();
+      showToast("Score and download link copied");
+    });
+  }
   if (action === "toggle-theme") {
     state.prefs.theme = state.prefs.theme === "dark" ? "light" : "dark";
     save();
@@ -750,14 +757,76 @@ function saveRound(event) {
   showToast("Round calculated");
 }
 
-function shareGame() {
+const APP_URL = "https://cynicandroid.github.io/Marriage-Hisab-Kitab";
+const APP_URL_MESSAGE = `Use the app to start playing: ${APP_URL}`;
+
+function showShareOptions(game, text) {
+  shareFallbackText = `${text}\n\n${APP_URL_MESSAGE}`;
+  const subject = encodeURIComponent(`${game.name} — Marriage Scoreboard`);
+  const body = encodeURIComponent(shareFallbackText);
+  lastFocusedElement = document.activeElement;
+  document.querySelector("#modal-root").innerHTML = `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-header"><h2 id="modal-title">Share scoreboard</h2><button class="close" data-action="close-modal" aria-label="Close dialog">×</button></div><div class="modal-body"><p class="confirm-copy">Choose how you want to share the score and the app link.</p></div><div class="modal-footer"><a class="button primary" href="mailto:?subject=${subject}&body=${body}">Email</a><a class="button primary" href="sms:?&body=${body}">Text</a><button class="button secondary" data-action="copy-share">Copy</button></div></div></div>`;
+  bind();
+  document.querySelector("#modal-root .close")?.focus();
+}
+
+function shareImageSvg(game) {
+  const width = 1200;
+  const rowHeight = 92;
+  const headerHeight = 230;
+  const height = headerHeight + Math.max(game.players.length, 1) * rowHeight + 70;
+  const rows = game.players.map((player, index) => {
+    const y = headerHeight + index * rowHeight;
+    const score = total(game, player.id);
+    return `<rect x="70" y="${y}" width="1060" height="${rowHeight - 10}" rx="18" fill="${index % 2 ? "#fff4f4" : "#ffffff"}"/><text x="105" y="${y + 57}" font-family="Arial, sans-serif" font-size="34" fill="#261b1e">${escape(player.name)}</text><text x="1090" y="${y + 57}" text-anchor="end" font-family="Arial, sans-serif" font-size="40" font-weight="700" fill="#c92a3b">${score > 0 ? "+" : ""}${score}</text>`;
+  }).join("");
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="100%" height="100%" fill="#f8f5f5"/><text x="70" y="82" font-family="Arial, sans-serif" font-size="48" font-weight="700" fill="#261b1e">${escape(game.name)}</text><text x="70" y="137" font-family="Arial, sans-serif" font-size="28" fill="#76666a">Marriage Scoreboard</text><line x1="70" y1="178" x2="1130" y2="178" stroke="#e6dadd" stroke-width="3"/><text x="105" y="218" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#76666a">PLAYER</text><text x="1090" y="218" text-anchor="end" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#76666a">POINTS</text>${rows}</svg>`;
+}
+
+async function shareImage(game) {
+  const svg = new Blob([shareImageSvg(game)], { type: "image/svg+xml" });
+  const imageUrl = URL.createObjectURL(svg);
+  try {
+    const image = new Image();
+    image.src = imageUrl;
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    canvas.getContext("2d").drawImage(image, 0, 0);
+    return await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+  } finally {
+    URL.revokeObjectURL(imageUrl);
+  }
+}
+
+async function shareGame() {
   const game = getGame();
-  const text = `${game.name} — Marriage Scoreboard\n\n${game.players.map((player) => `${player.name}: ${game.rounds.reduce((sum, round) => sum + (round.scores[player.id] || 0), 0)}`).join("\n")}`;
-  if (navigator.share) navigator.share({ title: game.name, text });
-  else
-    navigator.clipboard
-      ?.writeText(text)
-      .then(() => showToast("Scoreboard copied"));
+  if (!game) return;
+  const text = `${game.name} — Marriage Scoreboard\n\n${game.players.map((player) => `${player.name}: ${total(game, player.id)}`).join("\n")}`;
+  try {
+    const image = await shareImage(game);
+    const file = new File([image], "marriage-scoreboard.png", { type: "image/png" });
+    if (navigator.share && navigator.canShare?.({ files: [file] })) {
+      await navigator.share({ title: game.name, text: "Use the app to start playing.", files: [file], url: APP_URL });
+      return;
+    }
+    if (navigator.share) {
+      await navigator.share({ title: game.name, text: `${text}\n\n${APP_URL_MESSAGE}`, url: APP_URL });
+      return;
+    }
+  } catch (error) {
+    if (error.name === "AbortError") return;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: game.name, text: `${text}\n\n${APP_URL_MESSAGE}`, url: APP_URL });
+        return;
+      } catch (shareError) {
+        if (shareError.name === "AbortError") return;
+      }
+    }
+  }
+  showShareOptions(game, text);
 }
 
 function showCallBreakFinalRanking(game) {

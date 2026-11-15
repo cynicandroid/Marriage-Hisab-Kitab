@@ -1260,6 +1260,27 @@ button {
   justify-content: flex-end;
   margin-bottom: 18px;
 }
+.round-maal-total {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.round-maal-total span {
+  color: var(--muted);
+  font-weight: 600;
+}
+.round-maal-total strong {
+  padding: 5px 9px;
+  border-radius: 7px;
+  background: #e8f6ed;
+  color: var(--green);
+  font-size: 14px;
+}
 .detail-row {
   display: flex;
   align-items: center;

@@ -32,6 +32,10 @@ export function detailView() {
     `;
     })
     .join("");
+  const totalMaal = game.players.reduce((sum, player) => {
+    const entry = round.entries.find((item) => item.playerId === player.id);
+    return sum + (Number(entry?.maalPoints) || 0);
+  }, 0);
 
   return `
     <button class="back-link" data-action="navigate" data-view="scoreboard">← Back to scoreboard</button>
@@ -47,6 +51,7 @@ export function detailView() {
         <button class="button secondary" data-action="edit-round"><span class="action-icon">⚙</span> Fix maal</button>
         <button class="button danger" data-action="delete-round"><span class="action-icon">🗑</span> Delete round</button>
       </div>
+      <div class="round-maal-total"><span>Total maal</span><strong>${totalMaal}</strong></div>
       <div class="card">${players}</div>
     </div>
   `;
