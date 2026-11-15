@@ -810,7 +810,7 @@ async function shareGame() {
     const image = await shareImage(game);
     const file = new File([image], "marriage-scoreboard.png", { type: "image/png" });
     if (navigator.share && navigator.canShare?.({ files: [file] })) {
-      await navigator.share({ title: game.name, text: "Use the app to start playing.", files: [file], url: APP_URL });
+      await navigator.share({ title: game.name, text: APP_URL_MESSAGE, files: [file], url: APP_URL });
       return;
     }
     if (navigator.share) {
