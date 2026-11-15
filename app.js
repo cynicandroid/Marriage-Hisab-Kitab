@@ -4,6 +4,7 @@ import {
   calculateCallBreakScores,
   getGame,
   id,
+  money,
   navigate,
   restoreNavigation,
   save,
@@ -758,7 +759,7 @@ function saveRound(event) {
 }
 
 const APP_URL = "https://cynicandroid.github.io/Marriage-Hisab-Kitab";
-const APP_URL_MESSAGE = `Use the app to start playing: ${APP_URL}`;
+const APP_URL_MESSAGE = `Ajja ko game ko final hisab kitab from ${APP_URL}`;
 
 function showShareOptions(game, text) {
   shareFallbackText = `${text}\n\n${APP_URL_MESSAGE}`;
@@ -778,9 +779,10 @@ function shareImageSvg(game) {
   const rows = game.players.map((player, index) => {
     const y = headerHeight + index * rowHeight;
     const score = total(game, player.id);
-    return `<rect x="70" y="${y}" width="1060" height="${rowHeight - 10}" rx="18" fill="${index % 2 ? "#fff4f4" : "#ffffff"}"/><text x="105" y="${y + 57}" font-family="Arial, sans-serif" font-size="34" fill="#261b1e">${escape(player.name)}</text><text x="1090" y="${y + 57}" text-anchor="end" font-family="Arial, sans-serif" font-size="40" font-weight="700" fill="#c92a3b">${score > 0 ? "+" : ""}${score}</text>`;
+    const amount = game.type === "call-break" ? "" : money(score * game.settings.pointRate);
+    return `<rect x="70" y="${y}" width="1060" height="${rowHeight - 10}" rx="18" fill="${index % 2 ? "#fff4f4" : "#ffffff"}"/><text x="105" y="${y + 57}" font-family="Arial, sans-serif" font-size="34" fill="#261b1e">${escape(player.name)}</text><text x="960" y="${y + 57}" text-anchor="end" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#c92a3b">${score > 0 ? "+" : ""}${score}</text><text x="1090" y="${y + 57}" text-anchor="end" font-family="Arial, sans-serif" font-size="30" fill="#218452">${amount}</text>`;
   }).join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="100%" height="100%" fill="#f8f5f5"/><text x="70" y="82" font-family="Arial, sans-serif" font-size="48" font-weight="700" fill="#261b1e">${escape(game.name)}</text><text x="70" y="137" font-family="Arial, sans-serif" font-size="28" fill="#76666a">Marriage Scoreboard</text><line x1="70" y1="178" x2="1130" y2="178" stroke="#e6dadd" stroke-width="3"/><text x="105" y="218" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#76666a">PLAYER</text><text x="1090" y="218" text-anchor="end" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#76666a">POINTS</text>${rows}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="100%" height="100%" fill="#f8f5f5"/><text x="70" y="82" font-family="Arial, sans-serif" font-size="48" font-weight="700" fill="#261b1e">${escape(game.name)}</text><text x="70" y="137" font-family="Arial, sans-serif" font-size="28" fill="#76666a">Marriage Scoreboard</text><line x1="70" y1="178" x2="1130" y2="178" stroke="#e6dadd" stroke-width="3"/><text x="105" y="218" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#76666a">PLAYER</text><text x="960" y="218" text-anchor="end" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#76666a">POINTS</text><text x="1090" y="218" text-anchor="end" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#76666a">AMOUNT</text>${rows}</svg>`;
 }
 
 async function shareImage(game) {
